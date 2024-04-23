@@ -106,7 +106,7 @@ class SmallNorbCausalAttribute(MultipleDomainDataset):
         # original_lightings = original_dataset_tr.lightings
         # original_azimuths = original_dataset_tr.azimuths
 
-        shuffle = torch.randpern(len(original_images))
+        shuffle = torch.randperm(len(original_images))
         original_images = original_images[shuffle]
         original_labels = original_labels[shuffle]
         # original_lightings = original_lightings[shuffle]
