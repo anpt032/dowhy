@@ -141,9 +141,9 @@ class SmallNorbCausalAttribute(MultipleDomainDataset):
 
         lightings = self.lightings_from_labels(labels, environment)
 
-        x = torch.Tensor(images, dtype=torch.float32)
-        y = torch.Tensor(labels, dtype=torch.long)
-        a = torch.unsqueeze(torch.Tensor(lightings, dtype=torch.long), 1)
+        x = images
+        y = labels
+        a = torch.unsqueeze(lightings, 1)
 
         return TensorDataset(x, y, a)
 
