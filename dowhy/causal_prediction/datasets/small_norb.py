@@ -84,7 +84,13 @@ class SmallNORB(VisionDataset):
         labels = np.array(labels)
         lightings = np.array(lightings)
         azimuths = np.array(azimuths)
-        return images, labels, lightings, azimuths
+
+        images_tensor = torch.tensor(images, dtype=torch.float32)
+        labels_tensor = torch.tensor(labels, dtype=torch.long)
+        lightings_tensor = torch.tensor(lightings, dtype=torch.long)
+        azimuths_tensor = torch.tensor(azimuths, dtype=torch.long)
+
+        return images_tensor, labels_tensor, lightings_tensor, azimuths_tensor
     
 
 class SmallNorbCausalAttribute(MultipleDomainDataset):
