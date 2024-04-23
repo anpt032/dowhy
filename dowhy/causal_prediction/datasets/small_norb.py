@@ -58,8 +58,8 @@ class SmallNORB(VisionDataset):
         if self._check_exists():
             return
         
-        os.makedirs(self.raw_folder, exist_ok=True)
-
+        # os.makedirs(self.raw_folder, exist_ok=True)
+        
         try:
             tfds.load('smallnorb', data_dir=self.root, download=True)
         except Exception as e:
@@ -135,9 +135,9 @@ class SmallNorbCausalAttribute(MultipleDomainDataset):
 
         lightings = self.lightings_from_labels(labels, environment)
 
-        x = images
-        y = labels
-        a = torch.unsqueeze(lightings, 1)
+        x = torch.Tensor(images, dtype=torch.float32)
+        y = torch.Tensor(labels, dtype=torch.long)
+        a = torch.unsqueeze(torch.Tensor(lightings, dtype=torch.long), 1)
 
         return TensorDataset(x, y, a)
 
