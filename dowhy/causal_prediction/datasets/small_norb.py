@@ -1,8 +1,11 @@
 import os
 import torch
 import random
-import numpy as np
+import warnings 
 from typing import Any, Callable, Dict, List, Optional, Tuple
+
+from PIL import Image
+import numpy as np
 
 from torch.utils.data import TensorDataset
 from torchvision.datasets.vision import VisionDataset
@@ -14,6 +17,36 @@ from dowhy.causal_prediction.datasets.base_dataset import MultipleDomainDataset
 
 
 class SmallNORB(VisionDataset):
+
+    training_file = "training.pt"
+    test_file = "test.pt"
+    classes = [
+        "0 - four-legged animals", 
+        "1 - human figures", 
+        "2 - airplanes", 
+        "3 - trucks", 
+        "4 - cars"
+    ]
+
+    @property
+    def train_labels(self):
+        warnings.warn("train_labels has been renamed targets")
+        return self.targets
+
+    @property
+    def test_labels(self):
+        warnings.warn("test_labels has been renamed targets")
+        return self.targets
+
+    @property
+    def train_data(self):
+        warnings.warn("train_data has been renamed data")
+        return self.data
+
+    @property
+    def test_data(self):
+        warnings.warn("test_data has been renamed data")
+        return self.data
 
     @property
     def source_files(self) -> List:
@@ -91,6 +124,40 @@ class SmallNORB(VisionDataset):
         azimuths_tensor = torch.tensor(azimuths, dtype=torch.long)
 
         return images_tensor, labels_tensor, lightings_tensor, azimuths_tensor
+    
+    def __getitem__(self, index: int) -> Tuple[Any, Any]:
+        """
+        Args:
+            index (int): Index
+
+        Returns:
+            tuple: (image, target) where target is index of the target class.
+        """
+        img, target = self.data[index], int(self.targets[index])
+
+        # doing this so that it is consistent with all other datasets
+        # to return a PIL Image
+        img = Image.fromarray(img.numpy(), mode="L")
+
+        if self.transform is not None:
+            img = self.transform(img)
+
+        if self.target_transform is not None:
+            target = self.target_transform(target)
+
+        return img, target
+
+    def __len__(self) -> int:
+        return len(self.data)
+
+    @property
+    def class_to_idx(self) -> Dict[str, int]:
+        return {_class: i for i, _class in enumerate(self.classes)}
+
+    def extra_repr(self) -> str:
+        split = "Train" if self.train is True else "Test"
+        return f"Split: {split}"
+
     
 
 class SmallNorbCausalAttribute(MultipleDomainDataset):
