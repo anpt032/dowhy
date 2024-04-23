@@ -164,4 +164,4 @@ class SmallNorbCausalAttribute(MultipleDomainDataset):
 
         lightings = self.add_noise(lightings, environment)
 
-        return torch.Tensor(lightings, dtype=torch.long)
+        return torch.LongTensor(lightings)
