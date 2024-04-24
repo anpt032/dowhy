@@ -118,14 +118,12 @@ class SmallNORB(VisionDataset):
         lightings = np.array(lightings)
         azimuths = np.array(azimuths)
 
-        # images_tensor = torch.tensor(images, dtype=torch.float32)
-        # labels_tensor = torch.tensor(labels, dtype=torch.long)
-        # lightings_tensor = torch.tensor(lightings, dtype=torch.long)
-        # azimuths_tensor = torch.tensor(azimuths, dtype=torch.long)
+        images_tensor = torch.tensor(images, dtype=torch.uint8)
+        labels_tensor = torch.tensor(labels, dtype=torch.long)
+        lightings_tensor = torch.tensor(lightings, dtype=torch.long)
+        azimuths_tensor = torch.tensor(azimuths, dtype=torch.long)
 
-        # return images_tensor, labels_tensor, lightings_tensor, azimuths_tensor
-
-        return images, labels, lightings, azimuths
+        return images_tensor, labels_tensor, lightings_tensor, azimuths_tensor
     
     def __getitem__(self, index: int) -> Tuple[Any, Any]:
         """
@@ -216,11 +214,9 @@ class SmallNorbCausalAttribute(MultipleDomainDataset):
 
         lightings = self.lightings_from_labels(labels, environment)
 
-        lightings_tensor = torch.tensor(lightings, dtype=torch.long)
-
         x = images.float().div_(255.0)
         y = labels.view(-1).long()
-        a = torch.unsqueeze(lightings_tensor, 1)
+        a = torch.unsqueeze(lightings, 1)
 
         return TensorDataset(x, y, a)
 
