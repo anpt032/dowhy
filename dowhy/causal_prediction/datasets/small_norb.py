@@ -164,7 +164,7 @@ class SmallNorbCausalAttribute(MultipleDomainDataset):
     N_STEPS = 5001
     CHECKPOINT_FREQ = 500
     ENVIRONMENTS = ["+90%", "+95%", "-0%", "-0%"]
-    INPUT_SHAPE = (2, 48, 48)
+    INPUT_SHAPE = (96, 96, 1)
 
     def __init__(self, root, download=True) -> None:
         super().__init__()
@@ -208,7 +208,7 @@ class SmallNorbCausalAttribute(MultipleDomainDataset):
 
     def lighting_dataset(self, images, labels, environment):
 
-        images = images.reshape((-1, 96, 96))[:, ::2, ::2]
+        # images = images.reshape((-1, 96, 96))[:, ::2, ::2]
 
         labels = self.add_noise(labels, 0.05)
 
