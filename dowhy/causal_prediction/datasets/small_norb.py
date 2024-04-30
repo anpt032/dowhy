@@ -118,12 +118,14 @@ class SmallNORB(VisionDataset):
         lightings = np.array(lightings)
         azimuths = np.array(azimuths)
 
-        images_tensor = torch.tensor(images, dtype=torch.uint8)
-        labels_tensor = torch.tensor(labels, dtype=torch.long)
-        lightings_tensor = torch.tensor(lightings, dtype=torch.long)
-        azimuths_tensor = torch.tensor(azimuths, dtype=torch.long)
+        return images, labels, lightings, azimuths
 
-        return images_tensor, labels_tensor, lightings_tensor, azimuths_tensor
+        # images_tensor = torch.tensor(images, dtype=torch.uint8)
+        # labels_tensor = torch.tensor(labels, dtype=torch.long)
+        # lightings_tensor = torch.tensor(lightings, dtype=torch.long)
+        # azimuths_tensor = torch.tensor(azimuths, dtype=torch.long)
+
+        # return images_tensor, labels_tensor, lightings_tensor, azimuths_tensor
     
     def __getitem__(self, index: int) -> Tuple[Any, Any]:
         """
@@ -242,10 +244,10 @@ class SmallNorbCausalAttribute(MultipleDomainDataset):
         _not_hold_indices = []
 
         for i in range(len(images)):
-            if torch.eq(labels[i], lightings[i]):
-                _images.append(images[i].numpy())
-                _labels.append(labels[i].item())
-                _lightings.append(lightings[i].item())
+            if labels[i] == lightings[i]:
+                _images.append(images[i])
+                _labels.append(labels[i])
+                _lightings.append(lightings[i])
             else:
                 _not_hold_indices.append(i)
 
@@ -254,9 +256,9 @@ class SmallNorbCausalAttribute(MultipleDomainDataset):
 
         for i in range(n_error_elements):
             if i < len(_not_hold_indices):
-                _images.append(images[_not_hold_indices[i]].numpy())
-                _labels.append(labels[_not_hold_indices[i]].item())
-                _lightings.append(lightings[_not_hold_indices[i]].item())
+                _images.append(images[_not_hold_indices[i]])
+                _labels.append(labels[_not_hold_indices[i]])
+                _lightings.append(lightings[_not_hold_indices[i]])
             else:
                 break
 
