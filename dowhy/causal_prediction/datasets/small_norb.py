@@ -243,7 +243,7 @@ class SmallNorbCausalAttribute(MultipleDomainDataset):
 
         for i in range(len(images)):
             if torch.eq(labels[i], lightings[i]):
-                _images.append(images[i].item())
+                _images.append(images[i].numpy())
                 _labels.append(labels[i].item())
                 _lightings.append(lightings[i].item())
             else:
@@ -254,7 +254,7 @@ class SmallNorbCausalAttribute(MultipleDomainDataset):
 
         for i in range(n_error_elements):
             if i < len(_not_hold_indices):
-                _images.append(images[_not_hold_indices[i]].item())
+                _images.append(images[_not_hold_indices[i]].numpy())
                 _labels.append(labels[_not_hold_indices[i]].item())
                 _lightings.append(lightings[_not_hold_indices[i]].item())
             else:
