@@ -176,13 +176,13 @@ class SmallNorbCausalAttribute(MultipleDomainDataset):
         
         original_images = original_dataset_tr.data
         original_labels = original_dataset_tr.targets
-        # original_lightings = original_dataset_tr.lightings
+        original_lightings = original_dataset_tr.lightings
         # original_azimuths = original_dataset_tr.azimuths
 
         shuffle = torch.randperm(len(original_images))
         original_images = original_images[shuffle]
         original_labels = original_labels[shuffle]
-        # original_lightings = original_lightings[shuffle]
+        original_lightings = original_lightings[shuffle]
         # original_azimuths = original_azimuths[shuffle]
 
         self.datasets = []
@@ -191,32 +191,35 @@ class SmallNorbCausalAttribute(MultipleDomainDataset):
         for i, env in enumerate(environments[:-1]):
             images = original_images[:20000][i::2]
             labels = original_labels[:20000][i::2]
-            self.datasets.append(self.lighting_dataset(images, labels, env))
+            lightings = original_lightings[:20000][i::2]
+            self.datasets.append(self.lighting_dataset(images, labels, lightings, env))
 
         images = original_images[20000:]
         labels = original_labels[20000:]
-        self.datasets.append(self.lighting_dataset(images, labels, environment=environments[-1]))
+        lightings = original_lightings[20000:]
+        self.datasets.append(self.lighting_dataset(images, labels, lightings, environment=environments[-1]))
 
         # test environment
         original_dataset_te = SmallNORB(root, train=False, download=download)
         original_images = original_dataset_te.data
         original_labels = original_dataset_te.targets
-        self.datasets.append(self.lighting_dataset(original_images, original_labels, environments[-1]))
+        original_lightings = original_dataset_te.lightings
+        self.datasets.append(self.lighting_dataset(original_images, original_labels, original_lightings, environments[-1]))
 
         self.input_shape = self.INPUT_SHAPE
         self.num_classes = 5
 
-    def lighting_dataset(self, images, labels, environment):
+    def lighting_dataset(self, images, labels, lightings, environment):
 
         # images = images.reshape((-1, 96, 96))[:, ::2, ::2]
 
         labels = self.add_noise(labels, 0.05)
 
-        lightings = self.lightings_from_labels(labels, environment)
+        _images, _labels, _lightings = self.lightings_selection(images, labels, lightings, environment)
 
-        x = images.float().div_(255.0)
-        y = labels.view(-1).long()
-        a = torch.unsqueeze(lightings, 1)
+        x = _images.float().div_(255.0)
+        y = _labels.view(-1).long()
+        a = torch.unsqueeze(_lightings, 1)
 
         return TensorDataset(x, y, a)
 
@@ -231,10 +234,30 @@ class SmallNorbCausalAttribute(MultipleDomainDataset):
 
         return labels
 
-    def lightings_from_labels(self, labels, environment):
+    def lightings_selection(self, images, labels, lightings, environment):
 
-        lightings = [label*2+1 for label in labels]
+        _images = []
+        _labels = []
+        _lightings = []
+        _not_hold_indices = []
 
-        lightings = self.add_noise(lightings, environment)
+        for i in range(len(images)):
+            if torch.eq(int(labels[i]), int(lightings[i])):
+                _images.append(images[i].item())
+                _labels.append(labels[i].item())
+                _lightings.append(lightings[i].item())
+            else:
+                _not_hold_indices.append(i)
 
-        return torch.LongTensor(lightings)
+
+        n_error_elements = int(environment*len(_images))
+
+        for i in range(n_error_elements):
+            if i < len(_not_hold_indices):
+                _images.append(images[_not_hold_indices[i]].item())
+                _labels.append(labels[_not_hold_indices[i]].item())
+                _lightings.append(lightings[_not_hold_indices[i]].item())
+            else:
+                break
+
+        return torch.LongTensor(_images), torch.LongTensor(_labels), torch.LongTensor(_lightings)
