@@ -242,7 +242,7 @@ class SmallNorbCausalAttribute(MultipleDomainDataset):
         _not_hold_indices = []
 
         for i in range(len(images)):
-            if torch.eq(int(labels[i]), int(lightings[i])):
+            if torch.eq(labels[i], lightings[i]):
                 _images.append(images[i].item())
                 _labels.append(labels[i].item())
                 _lightings.append(lightings[i].item())
@@ -260,4 +260,4 @@ class SmallNorbCausalAttribute(MultipleDomainDataset):
             else:
                 break
 
-        return torch.LongTensor(_images), torch.LongTensor(_labels), torch.LongTensor(_lightings)
+        return torch.LongTensor(np.array(_images)), torch.LongTensor(np.array(_labels)), torch.LongTensor(np.array(_lightings))
