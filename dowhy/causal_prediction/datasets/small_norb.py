@@ -262,4 +262,4 @@ class SmallNorbCausalAttribute(MultipleDomainDataset):
             else:
                 break
 
-        return torch.LongTensor(np.array(_images)), torch.LongTensor(np.array(_labels)), torch.LongTensor(np.array(_lightings))
+        return torch.Tensor(np.array(_images), dtype=torch.uint8), torch.LongTensor(np.array(_labels)), torch.LongTensor(np.array(_lightings))
