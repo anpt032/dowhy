@@ -243,23 +243,30 @@ class SmallNorbCausalAttribute(MultipleDomainDataset):
         _lightings = []
         _not_hold_indices = []
 
-        for i in range(len(images)):
-            if labels[i] == lightings[i]:
-                _images.append(images[i])
-                _labels.append(labels[i])
-                _lightings.append(lightings[i])
-            else:
-                _not_hold_indices.append(i)
+        if environment != 1:
+            for i in range(len(images)):
+                if labels[i] == lightings[i]:
+                    _images.append(images[i])
+                    _labels.append(labels[i])
+                    _lightings.append(lightings[i])
+                else:
+                    _not_hold_indices.append(i)
 
 
-        n_error_elements = int(environment*len(_images))
+            n_error_elements = int(environment*len(_images))
 
-        for i in range(n_error_elements):
-            if i < len(_not_hold_indices):
-                _images.append(images[_not_hold_indices[i]])
-                _labels.append(labels[_not_hold_indices[i]])
-                _lightings.append(lightings[_not_hold_indices[i]])
-            else:
-                break
+            for i in range(n_error_elements):
+                if i < len(_not_hold_indices):
+                    _images.append(images[_not_hold_indices[i]])
+                    _labels.append(labels[_not_hold_indices[i]])
+                    _lightings.append(lightings[_not_hold_indices[i]])
+                else:
+                    break
+        else:
+            for i in range(len(images)):
+                if labels[i] != lightings[i]:
+                    _images.append(images[i])
+                    _labels.append(labels[i])
+                    _lightings.append(lightings[i])
 
         return torch.tensor(np.array(_images), dtype=torch.uint8), torch.LongTensor(np.array(_labels)), torch.LongTensor(np.array(_lightings))
