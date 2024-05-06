@@ -226,7 +226,7 @@ class SmallNorbCausalAttribute(MultipleDomainDataset):
         print(images)
         print(images.shape)
 
-        images[torch.tensor(range(len(images))), (4 - lightings).long(), :, :] *= 0
+        images[torch.tensor((4 - lightings).long(), range(len(images))), :, :] *= 0
 
         x = images.float().div_(255.0)
         y = labels.view(-1).long()
