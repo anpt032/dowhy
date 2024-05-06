@@ -99,6 +99,12 @@ class MNISTCausalAttribute(MultipleDomainDataset):
         # Assign a color based on the label; flip the color with probability environment
         colors = self.torch_xor_(labels, self.torch_bernoulli_(environment, len(labels)))
         images = torch.stack([images, images], dim=1)
+
+        print(images.shape)
+        print(colors.shape)
+        print(torch.tensor(range(len(images))))
+        print((1 - colors).long())
+
         # Apply the color to the image by zeroing out the other color channel
         images[torch.tensor(range(len(images))), (1 - colors).long(), :, :] *= 0
 
