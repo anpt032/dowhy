@@ -166,7 +166,7 @@ class SmallNorbCausalAttribute(MultipleDomainDataset):
     N_STEPS = 5001
     CHECKPOINT_FREQ = 500
     ENVIRONMENTS = ["+90%", "+95%", "-0%", "-0%"]
-    INPUT_SHAPE = (96, 96, 1)
+    INPUT_SHAPE = (5, 96, 96)
 
     def __init__(self, root, download=True) -> None:
         super().__init__()
@@ -213,7 +213,7 @@ class SmallNorbCausalAttribute(MultipleDomainDataset):
 
     def lighting_dataset(self, images, labels, _lightings, environment):
 
-        images = images.reshape((192, 192, -1))[::2, ::2, :]
+        images = images.reshape((-1, 192, 192))[:, ::2, ::2]
 
         labels = self.add_noise(labels, 0.05)
         labels = labels.float()
@@ -222,14 +222,17 @@ class SmallNorbCausalAttribute(MultipleDomainDataset):
 
         lightings = self.torch_xor_(labels, self.torch_bernoulli_(environment, len(labels)))
 
+        print(images.shape)
+
         images = torch.stack([images, images, images, images, images], dim=1)
 
         print(images.shape)
+        print(labels.shape)
         print(lightings.shape)
         print(torch.tensor(range(len(images))))
         print((4 - lightings).long())
 
-        images[torch.tensor(range(len(images))), :, :, (4 - lightings).long()] *= 0
+        images[torch.tensor(range(len(images))), (4 - lightings).long(), :, :] *= 0
 
         x = images.float().div_(255.0)
         y = labels.view(-1).long()
