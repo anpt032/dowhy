@@ -215,7 +215,8 @@ class SmallNorbCausalAttribute(MultipleDomainDataset):
 
         print(images.shape)
 
-        images = images.reshape((-1, 480, 480, 5))[:, ::2, ::2]
+        # images = images.reshape((-1, 480, 480, 5))[:, ::2, ::2]
+        images = images[:, ::2, ::2]
 
         labels = self.add_noise(labels, 0.05)
         labels = labels.float()
