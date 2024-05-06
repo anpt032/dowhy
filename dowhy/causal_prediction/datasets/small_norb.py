@@ -213,11 +213,14 @@ class SmallNorbCausalAttribute(MultipleDomainDataset):
 
     def lighting_dataset(self, images, labels, lightings, environment):
 
-        # images = images.reshape((-1, 96, 96))[:, ::2, ::2]
+        images = images.reshape((192, 192, -1))[:, ::2, ::2]
 
         labels = self.add_noise(labels, 0.05)
 
         _images, _labels, _lightings = self.lightings_selection(images, labels, lightings, environment)
+
+        images = torch.stack([images, images], dim=1)
+        images[torch.tensor(range(len(images))), (1 - _lightings).long(), :, :] = _lightings
 
         x = _images.float().div_(255.0)
         y = _labels.view(-1).long()
