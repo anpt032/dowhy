@@ -88,9 +88,10 @@ class MNISTCausalAttribute(MultipleDomainDataset):
         :param environment: Value of correlation between color and label
         :returns: TensorDataset containing transformed images, labels, and attributes (color)
         """
-
+        print(images.shape)
         # Subsample 2x for computational convenience
         images = images.reshape((-1, 28, 28))[:, ::2, ::2]
+        print(images.shape)
         # Assign a binary label based on the digit
         labels = (labels < 5).float()
         # Flip label with probability 0.25
