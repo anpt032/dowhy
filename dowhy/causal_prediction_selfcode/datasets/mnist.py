@@ -1,5 +1,6 @@
 import torch
 from torchvision.datasets import MNIST
+from torch.utils.data import TensorDataset
 
 from dowhy.causal_prediction_selfcode.datasets.base_dataset import MultipleDomainDataset
 
@@ -62,32 +63,42 @@ class MNISTCausalAttribute(MultipleDomainDataset):
             self.datasets.append(self.color_dataset(images, labels, env))
 
 
-        def color_dataset(self, images, labels, environment):
-            """
-                Transform MNIST datasets to introduce correlation between attribute (color) and label.
-                There is a direct-causal relationship between label Y and color.
+    def color_dataset(self, images, labels, environment):
+        """
+            Transform MNIST datasets to introduce correlation between attribute (color) and label.
+            There is a direct-causal relationship between label Y and color.
 
-                :param images: original MNIST images
-                :param labels: original MNIST labels
-                :param environment: Value of correlation between color and label
-                :returns: TensorDataset containing transformed images, labels, and attributes (color)
-            
-            """
+            :param images: original MNIST images
+            :param labels: original MNIST labels
+            :param environment: Value of correlation between color and label
+            :returns: TensorDataset containing transformed images, labels, and attributes (color)
+        
+        """
 
-            # Subsample 2x for computational convenience
-            images = images.reshape((-1, 28, 28))[:, ::2, ::2]
+        # Subsample 2x for computational convenience
+        images = images.reshape((-1, 28, 28))[:, ::2, ::2]
 
-            # Asign a binary label based on the digit
-            labels = (labels < 5).float()
+        # Asign a binary label based on the digit
+        labels = (labels < 5).float()
 
-            # Flip the label with probability 0.25
-            labels = self.torch_xor_(labels, self.torch_bernoulli_(0.25, len(labels)))
-            
-            images = torch.stack([images, images], dim=1)
-            # Apply the color to the image by zeroing out the other color channel
+        # Flip the label with probability 0.25
+        labels = self.torch_xor_(labels, self.torch_bernoulli_(0.25, len(labels)))
+        
+        # Assign a color based on the label; flip the color with probability environment
+        colors = self.torch_xor_(labels, self.torch_bernoulli_(environment, len(labels)))
 
-        def torch_bernoulli_(self, p, size):
-            return (torch.rand(size) < p).float()
+        images = torch.stack([images, images], dim=1)
+        # Apply the color to the image by zeroing out the other color channel
+        images[torch.tensor(range(len(images))), (1-colors).long(), :, :] *= 0
 
-        def torch_xor_(self, a, b):
-            return (a - b).abs()
+        x = images.float().div_(255.0)
+        y = labels.view(-1).long()
+        a = torch.unsqueeze(colors, 1)
+
+        return TensorDataset(x, y, a)
+
+    def torch_bernoulli_(self, p, size):
+        return (torch.rand(size) < p).float()
+
+    def torch_xor_(self, a, b):
+        return (a - b).abs()
