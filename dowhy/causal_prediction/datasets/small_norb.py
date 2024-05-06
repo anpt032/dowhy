@@ -213,7 +213,10 @@ class SmallNorbCausalAttribute(MultipleDomainDataset):
 
     def lighting_dataset(self, images, labels, _lightings, environment):
 
-        images = images.reshape((-1, 192, 192))[:, ::2, ::2]
+        print(images.shape)
+
+        # images = images.reshape((-1, 192, 192))[:, ::2, ::2]
+        images = images.reshape((-1, 192, 192))
 
         labels = self.add_noise(labels, 0.05)
         labels = labels.float()
