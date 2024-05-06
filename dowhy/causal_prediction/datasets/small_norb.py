@@ -166,7 +166,7 @@ class SmallNorbCausalAttribute(MultipleDomainDataset):
     N_STEPS = 5001
     CHECKPOINT_FREQ = 500
     ENVIRONMENTS = ["+90%", "+95%", "-0%", "-0%"]
-    INPUT_SHAPE = (5, 96, 96)
+    INPUT_SHAPE = (5, 48, 48, 1)
 
     def __init__(self, root, download=True) -> None:
         super().__init__()
