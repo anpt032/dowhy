@@ -223,6 +223,9 @@ class SmallNorbCausalAttribute(MultipleDomainDataset):
 
         images = torch.stack([images, images, images, images, images], dim=1)
 
+        print(images)
+        print(images.shape)
+
         images[torch.tensor(range(len(images))), (4 - lightings).long(), :, :] *= 0
 
         x = images.float().div_(255.0)
