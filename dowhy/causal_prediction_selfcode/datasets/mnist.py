@@ -82,7 +82,9 @@ class MNISTCausalAttribute(MultipleDomainDataset):
 
             # Flip the label with probability 0.25
             labels = self.torch_xor_(labels, self.torch_bernoulli_(0.25, len(labels)))
+            
             images = torch.stack([images, images], dim=1)
+            # Apply the color to the image by zeroing out the other color channel
 
         def torch_bernoulli_(self, p, size):
             return (torch.rand(size) < p).float()
