@@ -107,7 +107,7 @@ class SmallNORB(VisionDataset):
         lightings = []
         azimuths = []
         for example in dataset:
-            images.append(example['image'].numpy())
+            images.append(np.squeeze(example['image'].numpy()))
             labels.append(example['label_category'].numpy())
             lightings.append(example['label_lighting'].numpy())
             azimuths.append(example['label_azimuth'].numpy())
@@ -215,7 +215,7 @@ class SmallNorbCausalAttribute(MultipleDomainDataset):
 
         print(images.shape)
 
-        # images = images.reshape((-1, 480, 480, 5))[:, ::2, ::2]
+        # images = images.reshape((-1, 480, 480, ))[:, ::2, ::2]
         images = images[:, ::2, ::2]
 
         labels = self.add_noise(labels, 0.05)
