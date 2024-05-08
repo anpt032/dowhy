@@ -267,7 +267,7 @@ class SmallNORBCausalAttribute(MultipleDomainDataset):
     def torch_xor_(self, a, b):
         res = a
         for i in range(len(a)):
-            if b == 1:
+            if b[i] == 1:
                 res[i] = (res[i] + random.randint(1, 4)) % 5
         return res
 
