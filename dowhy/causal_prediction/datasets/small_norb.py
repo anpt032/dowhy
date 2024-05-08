@@ -342,7 +342,7 @@ class SmallNORBIndAttribute(MultipleDomainDataset):
         for i in range(len(original_images)):
             if original_azimuths[i] < 6:
                 domain_1_indices.append(i)
-            elif original_azimuths < 12:
+            elif original_azimuths[i] < 12:
                 domain_2_indices.append(i)
             else:
                 domain_3_indices.append(i)
