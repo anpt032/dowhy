@@ -78,7 +78,7 @@ class SmallNORB(VisionDataset):
         if download:
             self.download()
 
-        self.data, self.targets, self.lightings, self.azimuths = self._load_data()
+        self.data, self.data2, self.targets, self.lightings, self.azimuths = self._load_data()
 
     def _check_exists(self) -> bool:
         return all(
@@ -103,17 +103,20 @@ class SmallNORB(VisionDataset):
         dataset, info = tfds.load('smallnorb', data_dir=self.root, download=False, split='train' if self.train else 'test', with_info=True)
 
         images = []
+        image2s = []
         labels = []
         lightings = []
         azimuths = []
         for example in dataset:
             images.append(np.squeeze(example['image'].numpy()))
+            image2s.append(np.squeeze(example['image2'].numpy()))
             labels.append(example['label_category'].numpy())
             lightings.append(example['label_lighting'].numpy())
             azimuths.append(example['label_azimuth'].numpy())
 
         # Convert lists to numpy arrays
         images = np.array(images)
+        image2s = np.array(image2s)
         labels = np.array(labels)
         lightings = np.array(lightings)
         azimuths = np.array(azimuths)
@@ -121,11 +124,12 @@ class SmallNORB(VisionDataset):
         # return images, labels, lightings, azimuths
 
         images_tensor = torch.tensor(images, dtype=torch.uint8)
+        image2s_tensor = torch.tensor(image2s, dtype=torch.uint8)
         labels_tensor = torch.tensor(labels, dtype=torch.long)
         lightings_tensor = torch.tensor(lightings, dtype=torch.long)
         azimuths_tensor = torch.tensor(azimuths, dtype=torch.long)
 
-        return images_tensor, labels_tensor, lightings_tensor, azimuths_tensor
+        return images_tensor, image2s_tensor,  labels_tensor, lightings_tensor, azimuths_tensor
     
     def __getitem__(self, index: int) -> Tuple[Any, Any]:
         """
@@ -177,12 +181,14 @@ class SmallNORBCausalAttribute(MultipleDomainDataset):
         original_dataset_tr = SmallNORB(root, train=True, download=download)
         
         original_images = original_dataset_tr.data
+        original_image2s = original_dataset_tr.data2
         original_labels = original_dataset_tr.targets
         original_lightings = original_dataset_tr.lightings
         # original_azimuths = original_dataset_tr.azimuths
 
         shuffle = torch.randperm(len(original_images))
         original_images = original_images[shuffle]
+        original_image2s = original_image2s[shuffle]
         original_labels = original_labels[shuffle]
         original_lightings = original_lightings[shuffle]
         # original_azimuths = original_azimuths[shuffle]
@@ -192,28 +198,29 @@ class SmallNORBCausalAttribute(MultipleDomainDataset):
         environments = (0.1, 0.05, 1)
         for i, env in enumerate(environments[:-1]):
             images = original_images[:20000][i::2]
+            image2s = original_image2s[:20000][i::2]
             labels = original_labels[:20000][i::2]
             lightings = original_lightings[:20000][i::2]
-            self.datasets.append(self.lighting_dataset(images, labels, lightings, env))
+            self.datasets.append(self.lighting_dataset(images, image2s, labels, lightings, env))
 
         images = original_images[20000:]
+        image2s = original_image2s[20000:]
         labels = original_labels[20000:]
         lightings = original_lightings[20000:]
-        self.datasets.append(self.lighting_dataset(images, labels, lightings, environment=environments[-1]))
+        self.datasets.append(self.lighting_dataset(images, image2s, labels, lightings, environment=environments[-1]))
 
         # test environment
         original_dataset_te = SmallNORB(root, train=False, download=download)
         original_images = original_dataset_te.data
+        original_image2s = original_dataset_te.data2
         original_labels = original_dataset_te.targets
         original_lightings = original_dataset_te.lightings
-        self.datasets.append(self.lighting_dataset(original_images, original_labels, original_lightings, environments[-1]))
+        self.datasets.append(self.lighting_dataset(original_images, original_image2s, original_labels, original_lightings, environments[-1]))
 
         self.input_shape = self.INPUT_SHAPE
         self.num_classes = 5
 
-    def lighting_dataset(self, images, labels, _lightings, environment):
-
-        print(images.shape)
+    def lighting_dataset_5_channels(self, images, labels, _lightings, environment):
 
         # images = images.reshape((-1, 480, 480, ))[:, ::2, ::2]
         images = images[:, ::2, ::2]
@@ -225,19 +232,7 @@ class SmallNORBCausalAttribute(MultipleDomainDataset):
 
         lightings = self.torch_xor_(labels, self.torch_bernoulli_(environment, len(labels)))
 
-        print(images.shape)
-
         images = torch.stack([images, images, images, images, images], dim=1)
-
-        print(images.shape)
-        print(labels.shape)
-        print(lightings.shape)
-        print(torch.tensor(range(len(images))))
-        print(lightings)
-        print((1 + lightings) % 5)
-        print((2 + lightings) % 5)
-        print((3 + lightings) % 5)
-        print((4 + lightings) % 5)
 
         images[torch.tensor(range(len(images))), ((1 + lightings) % 5).long(), :, :] *= 0
         images[torch.tensor(range(len(images))), ((2 + lightings) % 5).long(), :, :] *= 0
@@ -247,6 +242,23 @@ class SmallNORBCausalAttribute(MultipleDomainDataset):
         x = images.float().div_(255.0)
         y = labels.view(-1).long()
         a = torch.unsqueeze(lightings, 1)
+
+        return TensorDataset(x, y, a)
+    
+    def lighting_dataset(self, images, image2s, labels, lightings, environment):
+        
+        images = images[:, ::2, ::2]
+
+        labels = self.add_noise(labels, 0.05)
+        labels = labels.float()
+
+        _images, _image2s, _labels, _lightings = self.lightings_selection(images, image2s, labels, lightings, environment)
+
+        stacked_images = torch.stack([_images, _image2s], dim=1)
+
+        x = stacked_images.float().div_(255.0)
+        y = _labels.view(-1).long()
+        a = torch.unsqueeze(_lightings, 1)
 
         return TensorDataset(x, y, a)
 
@@ -272,9 +284,10 @@ class SmallNORBCausalAttribute(MultipleDomainDataset):
         #         res[i] = (res[i] + random.randint(1, 4)) % 5
         # return res
 
-    def lightings_selection(self, images, labels, lightings, environment):
+    def lightings_selection(self, images, image2s, labels, lightings, environment):
 
         _images = []
+        _image2s = []
         _labels = []
         _lightings = []
         _not_hold_indices = []
@@ -283,6 +296,7 @@ class SmallNORBCausalAttribute(MultipleDomainDataset):
             for i in range(len(images)):
                 if torch.equal(labels[i], lightings[i]):
                     _images.append(images[i])
+                    _image2s.append(image2s[i])
                     _labels.append(labels[i])
                     _lightings.append(lightings[i])
                 else:
@@ -294,6 +308,7 @@ class SmallNORBCausalAttribute(MultipleDomainDataset):
             for i in range(n_error_elements):
                 if i < len(_not_hold_indices):
                     _images.append(images[_not_hold_indices[i]])
+                    _image2s.append(image2s[_not_hold_indices[i]])
                     _labels.append(labels[_not_hold_indices[i]])
                     _lightings.append(lightings[_not_hold_indices[i]])
                 else:
@@ -302,10 +317,11 @@ class SmallNORBCausalAttribute(MultipleDomainDataset):
             for i in range(len(images)):
                 if not torch.equal(labels[i], lightings[i]):
                     _images.append(images[i])
+                    _image2s.append(image2s[i])
                     _labels.append(labels[i])
                     _lightings.append(lightings[i])
 
-        return torch.tensor(np.array(_images), dtype=torch.uint8), torch.LongTensor(np.array(_labels)), torch.LongTensor(np.array(_lightings))
+        return torch.tensor(np.array(_images), dtype=torch.uint8), torch.tensor(np.array(_image2s), dtype=torch.uint8), torch.LongTensor(np.array(_labels)), torch.LongTensor(np.array(_lightings))
 
 
 class SmallNORBIndAttribute(MultipleDomainDataset):
