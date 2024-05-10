@@ -170,7 +170,7 @@ class SmallNORBCausalAttribute(MultipleDomainDataset):
     N_STEPS = 5001
     CHECKPOINT_FREQ = 500
     ENVIRONMENTS = ["+90%", "+95%", "-0%", "-0%"]
-    INPUT_SHAPE = (5, 48, 48)
+    INPUT_SHAPE = (2, 48, 48)
 
     def __init__(self, root, download=True) -> None:
         super().__init__()
@@ -248,6 +248,7 @@ class SmallNORBCausalAttribute(MultipleDomainDataset):
     def lighting_dataset(self, images, image2s, labels, lightings, environment):
         
         images = images[:, ::2, ::2]
+        image2s = image2s[:, ::2, ::2]
 
         labels = self.add_noise(labels, 0.05)
         labels = labels.float()
