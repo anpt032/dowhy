@@ -258,8 +258,7 @@ class SmallNORBCausalAttribute(MultipleDomainDataset):
         print(_images.shape)
         print(_labels.shape)
         print(_lightings.shape)
-        # stacked_images = torch.stack([_images, _image2s], dim=1)
-        stacked_images = _images
+        stacked_images = torch.stack([_images], dim=1)
 
         x = stacked_images.float().div_(255.0)
         y = _labels.view(-1).long()
@@ -411,7 +410,7 @@ class SmallNORBIndAttribute(MultipleDomainDataset):
 
     def azimuth_dataset(self, images, labels, azimuths):
 
-        images = images[:, ::2, ::2]
+        images = images.reshape(-1, 96, 96)[:, ::2, ::2]
 
         labels = self.add_noise(labels, 0.05)
         labels = labels.float()
