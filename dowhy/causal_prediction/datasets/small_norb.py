@@ -410,7 +410,7 @@ class SmallNORBIndAttribute(MultipleDomainDataset):
 
     def azimuth_dataset(self, images, labels, azimuths):
 
-        images = images.reshape(-1, 96, 96)[:, ::2, ::2]
+        images = images.reshape((-1, 96, 96))[:, ::2, ::2]
 
         labels = self.add_noise(labels, 0.05)
         labels = labels.float()
