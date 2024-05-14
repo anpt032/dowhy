@@ -255,7 +255,8 @@ class SmallNORBCausalAttribute(MultipleDomainDataset):
 
         _images, _image2s, _labels, _lightings = self.lightings_selection(images, image2s, labels, lightings, environment)
 
-        stacked_images = torch.stack([_images, _image2s], dim=1)
+        # stacked_images = torch.stack([_images, _image2s], dim=1)
+        stacked_images = _images
 
         x = stacked_images.float().div_(255.0)
         y = _labels.view(-1).long()

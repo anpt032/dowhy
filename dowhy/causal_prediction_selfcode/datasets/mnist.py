@@ -1,5 +1,10 @@
 import torch
+import torchvision
+
 from torchvision.datasets import MNIST
+from torchvision import transforms
+from torchvision.transforms.functional import rotate
+
 from torch.utils.data import TensorDataset
 
 from dowhy.causal_prediction_selfcode.datasets.base_dataset import MultipleDomainDataset
@@ -102,3 +107,172 @@ class MNISTCausalAttribute(MultipleDomainDataset):
 
     def torch_xor_(self, a, b):
         return (a - b).abs()
+    
+
+class MNISTIndAttribute(MultipleDomainDataset):
+    N_STEPS = 5001
+    CHECKPOINT_FREQ = 500
+    ENVIRONMENTS = ["15", "60", "90", "90"]
+    INPUT_SHAPE = (1, 14, 14)
+
+    def __init(self, root, download=True)
+        
+        super().__init__()
+
+        if root is None:
+            raise ValueError("Data directory not specified!")
+        
+        original_dataset_tr = MNIST(root, train=True, download=download)
+
+        original_images = original_dataset_tr.data
+        original_labels = original_dataset_tr.targets
+
+        shuffle = torch.randperm(len(original_images))
+
+        original_images = original_images[shuffle]
+        original_labels = original_labels[shuffle]
+
+        self.datasets = []
+
+        angles = ["15", "60", "90"]
+
+        for i, env in enumerate(angles[:-1]):
+            images = original_images[:50000][i::2]
+            labels = original_labels[:50000][i::2]
+            self.datasets.append(self.rotate_dataset(images, labels, i, env))
+        
+        images = original_images[50000:]
+        labels = original_labels[50000:]
+        self.datasets.append(self.rotate_dataset(images, labels, len(angles)-1), angles[-1])
+
+        # Test environment
+        original_dataset_te = MNIST(root, train=False, download=download)
+        original_images = original_dataset_te.data
+        original_labels = original_dataset_te.targets
+        self.datasets.append(self.rotate_dataset(original_images, original_labels, len(angles) - 1, angles[-1]))
+
+        self.input_shape = self.INPUT_SHAPE
+        self.num_classes = 2
+
+    def rotate_dataset(self, images, labels, env_id, angle):
+
+        rotation = transforms.Compose(
+            [
+                transforms.ToPILImage(),
+                transforms.Lambda(
+                    lambda x: rotate(
+                        x, int(angle), fill=(0,), interpolation=torchvision.transforms.InterpolationMode.BILINEAR
+                    )
+                ),
+                transforms.ToTensor(),
+            ]
+        )
+
+        images = images.reshape((-1, 28, 28))[:, ::2, ::2]
+
+        labels = (labels < 5).float()
+
+        labels = self.torch_xor_(labels, self.torch_bernoulli_(0.25, len(labels)))
+
+        x = torch.zeros(len(images, 1, 14, 14))
+        for i in range(len(images)):
+            x[i] = rotation(images[i].float().div_(255.0))
+
+        y = labels.view(-1).long()
+        a = torch.full((y.shape[0],), env_id, dtype=torch.float32)
+        a = torch.unsqueeze(a, 1)
+
+        return TensorDataset(x, y, a)
+    
+    def torch_bernoulli_(self, p, size):
+        return (torch.rand(size) < p).float()
+    
+    def torch_xor_(self, a, b):
+        return (a - b).float()
+    
+
+class MNISTCausalIndAttribute(MultipleDomainDataset):
+    N_STEPS = 5001
+    CHECKPOINT_FREQ = 500
+    ENVIRONMENTS = ["+90%, 15", "+80%, 60", "-90%, 90", "-90%, 90"]
+    INPUT_SHAPE = (2, 14, 14)
+
+    def __init__(self, root, download=True):
+
+        super().__init__()
+
+        if root is None:
+            raise ValueError("Data directory not specified!")
+        
+        original_datasete_tr = MNIST(root, train=True, download=download)
+
+        original_images = original_datasete_tr.data
+        original_labels = original_datasete_tr.targets
+
+        shuffle = torch.randpern(len(original_images))
+
+        original_images = original_images[shuffle]
+        original_labels = original_labels[shuffle]
+
+        self.datasets = []
+
+        environments = (0.1, 0.2, 0.9)
+        angles = ["15", "60", "90"]
+        for i, env in enumerate(environments[:-1]):
+            images = original_images[:50000][i::2]
+            labels = original_labels[:50000][i::2]
+            self.datasets.append(self.color_rot_dataset(images, labels, env, i, angles[i]))
+        
+        images = original_images[50000:]
+        labels = original_labels[50000:]
+        self.datasets.append(self.color_rot_dataset(images, labels, environments[-1], len(angles) - 1, angles[-1]))
+
+        # Test environment
+        original_datasete_te = MNIST(root, train=False, download=download)
+        original_images = original_datasete_te.data
+        original_labels = original_datasete_te.targets
+        self.datasets.append(self.color_rot_dataset((original_images, original_labels, environments[-1], len(angles) - 1, angles[-1])))
+
+        self.input_shape = self.INPUT_SHAPE
+        self.num_classes = 2
+
+        def color_rot_dataset(self, images, labels, environment, env_id, angle):
+
+            images = images.reshape((-1, 28, 28))[:, ::2, ::2]
+
+            images = self.rotate_dataset(images, angle)
+
+            images, labels, colors = self.color_dataset(images, labels, environment)
+
+            x = images
+            y = labels.view(-1).long()
+            angles = torch.full((y.shape[0],), env_id, dtype=torch.float32)
+            a = torch.stack((colors, angles), 1)
+
+            return TensorDataset(x, y, a)
+        
+        def color_dataset(self, images, labels, environment):
+
+            labels = (labels < 5).float()
+
+            labels = self.torch_xor_(labels, self.torch_bernoulli_(0.25, len(labels)))
+
+            colors = self.torch_xor_(labels, self.torch_bernoulli_(environment, len(labels)))
+
+            images = torch.stack([images, images], dim=1)
+
+            images[torch.tensor(range(len(images))), (1-colors).long(), :, :] *= 0
+
+            return images, labels, colors
+        
+        def rotate_dataset(self, images, angle):
+
+            rotation = transforms.Compose(
+                [
+                    transforms.ToPILImage(),
+                    transforms.Lambda(lambda x: transforms.functional.rotate(x, int(angle), fill=(0,))),
+                    transforms.ToTensor(),
+                ]
+            )
+
+            x = torch
