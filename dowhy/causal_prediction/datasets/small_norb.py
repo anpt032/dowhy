@@ -419,7 +419,9 @@ class SmallNORBIndAttribute(MultipleDomainDataset):
         print(labels.shape)
         print(azimuths.shape)
 
-        x = images.float().div_(255.0)
+        x = torch.stack([images], dim=1)
+
+        x = x.float().div_(255.0)
         y = labels.view(-1).long()
 
         a = torch.full((y.shape[0],), env_id, dtype=torch.float32)
