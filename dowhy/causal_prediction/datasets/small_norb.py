@@ -380,9 +380,9 @@ class SmallNORBIndAttribute(MultipleDomainDataset):
         domain_2_azimuths = torch.index_select(original_azimuths, 0, torch.LongTensor(domain_2_indices))
         domain_3_azimuths = torch.index_select(original_azimuths, 0, torch.LongTensor(domain_3_indices))
 
-        self.datasets.append(self.azimuth_dataset(domain_1_images, domain_1_labels, domain_1_azimuths))
-        self.datasets.append(self.azimuth_dataset(domain_2_images, domain_2_labels, domain_2_azimuths))
-        self.datasets.append(self.azimuth_dataset(domain_3_images, domain_3_labels, domain_3_azimuths))
+        self.datasets.append(self.azimuth_dataset(domain_1_images, domain_1_labels, domain_1_azimuths, 0))
+        self.datasets.append(self.azimuth_dataset(domain_2_images, domain_2_labels, domain_2_azimuths, 1))
+        self.datasets.append(self.azimuth_dataset(domain_3_images, domain_3_labels, domain_3_azimuths, 2))
 
         # Test environment
         original_dataset_te = SmallNORB(root, train=False, download=download)
@@ -403,12 +403,12 @@ class SmallNORBIndAttribute(MultipleDomainDataset):
 
         domain_4_azimuths = torch.index_select(original_azimuths, 0, torch.LongTensor(domain_4_indices))
 
-        self.datasets.append(self.azimuth_dataset(domain_4_images, domain_4_labels, domain_4_azimuths))
+        self.datasets.append(self.azimuth_dataset(domain_4_images, domain_4_labels, domain_4_azimuths, 2))
 
         self.input_shape = self.INPUT_SHAPE
         self.num_classes = 5
 
-    def azimuth_dataset(self, images, labels, azimuths):
+    def azimuth_dataset(self, images, labels, azimuths, env_id):
 
         images = images.reshape((-1, 96, 96))[:, ::2, ::2]
 
@@ -421,7 +421,9 @@ class SmallNORBIndAttribute(MultipleDomainDataset):
 
         x = images.float().div_(255.0)
         y = labels.view(-1).long()
-        a = torch.unsqueeze(azimuths, 1)
+
+        a = torch.full((y.shape[0],), env_id, dtype=torch.float32)
+        a = torch.unsqueeze(a, 1)
 
         return TensorDataset(x, y, a)
 
