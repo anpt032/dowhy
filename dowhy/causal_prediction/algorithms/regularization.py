@@ -144,9 +144,9 @@ class Regularizer:
                     cumprod = torch.cumprod(cardinality, dim=0)
                     n_groups = cumprod[-1].item()
 
-                    # factors_np = np.concatenate(([1], cumprod[:-1]))
-                    # factors = torch.from_numpy(factors_np)
-                    factors = torch.cat((torch.tensor([1]).cuda(), cumprod[:-1]))
+                    factors_np = np.concatenate(([1], cumprod[:-1]).cpu())
+                    factors = torch.from_numpy(factors_np)
+                    # factors = torch.cat((torch.tensor([1]).cuda(), cumprod[:-1]))
 
                     group_indices = grouping_data @ factors
 
@@ -210,9 +210,9 @@ class Regularizer:
                     cumprod = torch.cumprod(cardinality, dim=0)
                     n_groups = cumprod[-1].item()
 
-                    # factors_np = np.concatenate(([1], cumprod[:-1]))
-                    # factors = torch.from_numpy(factors_np)
-                    factors = torch.cat((torch.tensor([1]).cuda(), cumprod[:-1]))
+                    factors_np = np.concatenate(([1], cumprod[:-1]).cpu())
+                    factors = torch.from_numpy(factors_np)
+                    # factors = torch.cat((torch.tensor([1]).cuda(), cumprod[:-1]))
 
                     group_indices = grouping_data @ factors
 
@@ -253,9 +253,9 @@ class Regularizer:
                     cumprod = torch.cumprod(cardinality, dim=0)
                     n_groups = cumprod[-1].item()
 
-                    # factors_np = np.concatenate(([1], cumprod[:-1]))
-                    # factors = torch.from_numpy(factors_np)
-                    factors = torch.cat((torch.tensor([1]).cuda(), cumprod[:-1]))
+                    factors_np = np.concatenate(([1], cumprod[:-1]).cpu())
+                    factors = torch.from_numpy(factors_np)
+                    # factors = torch.cat((torch.tensor([1]).cuda(), cumprod[:-1]))
 
                     group_indices = grouping_data @ factors
 
