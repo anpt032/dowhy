@@ -148,7 +148,7 @@ class Regularizer:
                     factors = torch.from_numpy(factors_np)
                     # factors = torch.cat((torch.tensor([1]).cuda(), cumprod[:-1]))
 
-                    group_indices = grouping_data @ factors
+                    group_indices = grouping_data.cuda() @ factors
 
                     for group_idx in range(n_groups):
                         group_idx_indices = [
@@ -214,7 +214,7 @@ class Regularizer:
                     factors = torch.from_numpy(factors_np)
                     # factors = torch.cat((torch.tensor([1]).cuda(), cumprod[:-1]))
 
-                    group_indices = grouping_data @ factors
+                    group_indices = grouping_data.cuda() @ factors
 
                     for group_idx in range(n_groups):
                         group_idx_indices = [
@@ -257,7 +257,7 @@ class Regularizer:
                     factors = torch.from_numpy(factors_np)
                     # factors = torch.cat((torch.tensor([1]).cuda(), cumprod[:-1]))
 
-                    group_indices = grouping_data @ factors
+                    group_indices = grouping_data.cuda() @ factors
 
                     for group_idx in range(n_groups):
                         group_idx_indices = [
