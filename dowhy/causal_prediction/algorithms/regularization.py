@@ -218,6 +218,7 @@ class Regularizer:
                     factors = factors.int()
 
                     print("grouping data dtype", grouping_data.dtype)
+                    print("grouping data int dtype", grouping_data.int().dtype)
                     print("factors dtype", factors.dtype)
                     group_indices = grouping_data.int().cuda() @ factors
 
