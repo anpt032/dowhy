@@ -201,13 +201,15 @@ class SmallNORBCausalAttribute(MultipleDomainDataset):
             image2s = original_image2s[:20000][i::2]
             labels = original_labels[:20000][i::2]
             lightings = original_lightings[:20000][i::2]
-            self.datasets.append(self.lighting_dataset(images, image2s, labels, lightings, env))
+            # self.datasets.append(self.lighting_dataset(images, image2s, labels, lightings, env))
+            self.datasets.append(self.lighting_dataset_5_channels(images, labels, lightings, env))
 
         images = original_images[20000:]
         image2s = original_image2s[20000:]
         labels = original_labels[20000:]
         lightings = original_lightings[20000:]
-        self.datasets.append(self.lighting_dataset(images, image2s, labels, lightings, environment=environments[-1]))
+        # self.datasets.append(self.lighting_dataset(images, image2s, labels, lightings, environment=environments[-1]))
+        self.datasets.append(self.lighting_dataset_5_channels(images, labels, lightings, environments[-1]))
 
         # test environment
         original_dataset_te = SmallNORB(root, train=False, download=download)
@@ -215,7 +217,8 @@ class SmallNORBCausalAttribute(MultipleDomainDataset):
         original_image2s = original_dataset_te.data2
         original_labels = original_dataset_te.targets
         original_lightings = original_dataset_te.lightings
-        self.datasets.append(self.lighting_dataset(original_images, original_image2s, original_labels, original_lightings, environments[-1]))
+        # self.datasets.append(self.lighting_dataset(original_images, original_image2s, original_labels, original_lightings, environments[-1]))
+        self.datasets.append(self.lighting_dataset_5_channels(original_images, original_labels, original_lightings, environments[-1]))
 
         self.input_shape = self.INPUT_SHAPE
         self.num_classes = 5
