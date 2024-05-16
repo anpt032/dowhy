@@ -256,6 +256,7 @@ class Regularizer:
                     factors_np = np.concatenate(([1], cumprod[:-1]))
                     factors = torch.from_numpy(factors_np)
                     # factors = torch.cat((torch.tensor([1]).cuda(), cumprod[:-1]))
+                    factors = torch.cat((torch.tensor([1], device='cuda'), cumprod[:-1].to('cuda')))
 
                     group_indices = grouping_data.cuda() @ factors
 
