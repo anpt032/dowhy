@@ -170,7 +170,7 @@ class SmallNORBCausalAttribute(MultipleDomainDataset):
     N_STEPS = 5001
     CHECKPOINT_FREQ = 500
     ENVIRONMENTS = ["+90%", "+95%", "-0%", "-0%"]
-    INPUT_SHAPE = (1, 48, 48)
+    INPUT_SHAPE = (2, 48, 48)
 
     def __init__(self, root, download=True) -> None:
         super().__init__()
@@ -255,10 +255,7 @@ class SmallNORBCausalAttribute(MultipleDomainDataset):
 
         _images, _image2s, _labels, _lightings = self.lightings_selection(images, image2s, labels, lightings, environment)
 
-        print(_images.shape)
-        print(_labels.shape)
-        print(_lightings.shape)
-        stacked_images = torch.stack([_images], dim=1)
+        stacked_images = torch.stack([_images, _image2s], dim=1)
 
         x = stacked_images.float().div_(255.0)
         y = _labels.view(-1).long()
