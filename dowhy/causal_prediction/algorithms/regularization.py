@@ -215,12 +215,12 @@ class Regularizer:
                     # factors = torch.from_numpy(factors_np)
                     # factors = torch.cat((torch.tensor([1]).cuda(), cumprod[:-1]))
                     factors = torch.cat((torch.tensor([1], device='cuda'), cumprod[:-1].to('cuda')))
-                    factors = factors.int()
+                    factors = factors.float()
 
                     print("grouping data dtype", grouping_data.dtype)
-                    print("grouping data int dtype", grouping_data.int().dtype)
+                    print("grouping data float dtype", grouping_data.float().dtype)
                     print("factors dtype", factors.dtype)
-                    group_indices = grouping_data.int().cuda() @ factors
+                    group_indices = grouping_data.float().cuda() @ factors
 
                     for group_idx in range(n_groups):
                         group_idx_indices = [
