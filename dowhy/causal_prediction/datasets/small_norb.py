@@ -361,11 +361,11 @@ class SmallNORBIndAttribute(MultipleDomainDataset):
         self.datasets = []
 
         for i in range(len(original_images)):
-            if original_azimuths[i] < 6:
+            if original_azimuths[i] == 0:
                 domain_1_indices.append(i)
-            elif original_azimuths[i] < 12:
+            elif original_azimuths[i] == 6:
                 domain_2_indices.append(i)
-            else:
+            elif original_azimuths[i] == 12:
                 domain_3_indices.append(i)
         
         domain_1_images = torch.index_select(original_images, 0, torch.LongTensor(domain_1_indices))
@@ -394,7 +394,7 @@ class SmallNORBIndAttribute(MultipleDomainDataset):
         domain_4_indices = []
 
         for i in range(len(original_images)):
-            if original_azimuths[i] >= 12:
+            if original_azimuths[i] == 12:
                 domain_4_indices.append(i)
         
         domain_4_images = torch.index_select(original_images, 0, torch.LongTensor(domain_4_indices))
