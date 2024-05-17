@@ -144,12 +144,12 @@ class Regularizer:
                     cumprod = torch.cumprod(cardinality, dim=0)
                     n_groups = cumprod[-1].item()
 
-                    try: 
+                    if torch.cuda.is_available():
                         factors = torch.cat((torch.tensor([1], device='cuda'), cumprod[:-1].to('cuda')))
                         factors = factors.double()
 
                         group_indices = grouping_data.double().cuda() @ factors
-                    except RuntimeError:
+                    else:
                         factors_np = np.concatenate(([1], cumprod[:-1]))
                         factors = torch.from_numpy(factors_np)
 
@@ -215,12 +215,12 @@ class Regularizer:
                     cumprod = torch.cumprod(cardinality, dim=0)
                     n_groups = cumprod[-1].item()
 
-                    try: 
+                    if torch.cuda.is_available():
                         factors = torch.cat((torch.tensor([1], device='cuda'), cumprod[:-1].to('cuda')))
                         factors = factors.double()
 
                         group_indices = grouping_data.double().cuda() @ factors
-                    except RuntimeError:
+                    else:
                         factors_np = np.concatenate(([1], cumprod[:-1]))
                         factors = torch.from_numpy(factors_np)
 
@@ -263,12 +263,12 @@ class Regularizer:
                     cumprod = torch.cumprod(cardinality, dim=0)
                     n_groups = cumprod[-1].item()
 
-                    try: 
+                    if torch.cuda.is_available():
                         factors = torch.cat((torch.tensor([1], device='cuda'), cumprod[:-1].to('cuda')))
                         factors = factors.double()
 
                         group_indices = grouping_data.double().cuda() @ factors
-                    except RuntimeError:
+                    else:
                         factors_np = np.concatenate(([1], cumprod[:-1]))
                         factors = torch.from_numpy(factors_np)
 
