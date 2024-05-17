@@ -144,13 +144,16 @@ class Regularizer:
                     cumprod = torch.cumprod(cardinality, dim=0)
                     n_groups = cumprod[-1].item()
 
-                    # factors_np = np.concatenate(([1], cumprod[:-1]))
-                    # factors = torch.from_numpy(factors_np)
-                    # factors = torch.cat((torch.tensor([1]).cuda(), cumprod[:-1]))
-                    factors = torch.cat((torch.tensor([1], device='cuda'), cumprod[:-1].to('cuda')))
-                    factors = factors.double()
+                    try: 
+                        factors = torch.cat((torch.tensor([1], device='cuda'), cumprod[:-1].to('cuda')))
+                        factors = factors.double()
 
-                    group_indices = grouping_data.double().cuda() @ factors
+                        group_indices = grouping_data.double().cuda() @ factors
+                    except RuntimeError:
+                        factors_np = np.concatenate(([1], cumprod[:-1]))
+                        factors = torch.from_numpy(factors_np)
+
+                        group_indices = grouping_data @ factors
 
                     for group_idx in range(n_groups):
                         group_idx_indices = [
@@ -212,13 +215,16 @@ class Regularizer:
                     cumprod = torch.cumprod(cardinality, dim=0)
                     n_groups = cumprod[-1].item()
 
-                    # factors_np = np.concatenate(([1], cumprod[:-1]))
-                    # factors = torch.from_numpy(factors_np)
-                    # factors = torch.cat((torch.tensor([1]).cuda(), cumprod[:-1]))
-                    factors = torch.cat((torch.tensor([1], device='cuda'), cumprod[:-1].to('cuda')))
-                    factors = factors.double()
+                    try: 
+                        factors = torch.cat((torch.tensor([1], device='cuda'), cumprod[:-1].to('cuda')))
+                        factors = factors.double()
 
-                    group_indices = grouping_data.double().cuda() @ factors
+                        group_indices = grouping_data.double().cuda() @ factors
+                    except RuntimeError:
+                        factors_np = np.concatenate(([1], cumprod[:-1]))
+                        factors = torch.from_numpy(factors_np)
+
+                        group_indices = grouping_data @ factors
 
                     for group_idx in range(n_groups):
                         group_idx_indices = [
@@ -257,13 +263,16 @@ class Regularizer:
                     cumprod = torch.cumprod(cardinality, dim=0)
                     n_groups = cumprod[-1].item()
 
-                    # factors_np = np.concatenate(([1], cumprod[:-1]))
-                    # factors = torch.from_numpy(factors_np)
-                    # factors = torch.cat((torch.tensor([1]).cuda(), cumprod[:-1]))
-                    factors = torch.cat((torch.tensor([1], device='cuda'), cumprod[:-1].to('cuda')))
-                    factors = factors.double()
+                    try: 
+                        factors = torch.cat((torch.tensor([1], device='cuda'), cumprod[:-1].to('cuda')))
+                        factors = factors.double()
 
-                    group_indices = grouping_data.double().cuda() @ factors
+                        group_indices = grouping_data.double().cuda() @ factors
+                    except RuntimeError:
+                        factors_np = np.concatenate(([1], cumprod[:-1]))
+                        factors = torch.from_numpy(factors_np)
+
+                        group_indices = grouping_data @ factors
 
                     for group_idx in range(n_groups):
                         group_idx_indices = [
