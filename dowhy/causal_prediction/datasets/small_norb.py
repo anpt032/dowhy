@@ -282,9 +282,9 @@ class SmallNORBCausalAttribute(MultipleDomainDataset):
 
     def torch_xor_(self, a, b):
         c = (a + b) % 5
-        for i in range(len(b)):
-            if b[i] == 1:
-                c[i] = (c[i] + random.randint(0, 3)) % 5
+        # for i in range(len(b)):
+        #     if b[i] == 1:
+        #         c[i] = (c[i] + random.randint(0, 3)) % 5
         return c
 
     def lightings_selection(self, images, image2s, labels, lightings, environment):
