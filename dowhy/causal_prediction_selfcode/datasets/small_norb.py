@@ -371,7 +371,7 @@ class SmallNORBIndAttribute(MultipleDomainDataset):
         images = original_images[20000:]
         labels = original_labels[20000:]
         azimuths = original_azimuths[20000:]
-        self.datasets.append(self.color_dataset(images, labels, azimuths, 2))
+        self.datasets.append(self.azimuth_dataset(images, labels, azimuths, 2))
 
         # test environment
         original_dataset_te = SmallNORB(root, train=False, download=download)
