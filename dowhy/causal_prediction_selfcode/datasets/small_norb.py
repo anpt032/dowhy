@@ -457,7 +457,7 @@ class SmallNORBIndAttribute(MultipleDomainDataset):
 
         x = torch.stack([images, images, images], dim=1)
 
-        env_ids = torch.full(azimuths.shape(), env_id, dtype=torch.float32)
+        env_ids = torch.full(azimuths.shape, env_id, dtype=torch.float32)
 
         images[torch.tensor(range(len(images))), ((1 + env_ids) % 3).long(), :, :] *= 0
         images[torch.tensor(range(len(images))), ((2 + env_ids) % 3).long(), :, :] *= 0
