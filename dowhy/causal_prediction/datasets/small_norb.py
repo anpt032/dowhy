@@ -163,7 +163,6 @@ class SmallNORB(VisionDataset):
     def extra_repr(self) -> str:
         split = "Train" if self.train is True else "Test"
         return f"Split: {split}"
-
     
 
 class SmallNORBCausalAttribute(MultipleDomainDataset):

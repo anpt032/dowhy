@@ -347,6 +347,43 @@ class SmallNORBIndAttribute(MultipleDomainDataset):
         if root is None:
             raise ValueError("Data directory is not specified!")
         
+        # self.init_datasets_azimuth_selection(root, download=download)
+        # return
+
+        original_dataset_tr = SmallNORB(root, train=True, download=download)
+
+        original_images = original_dataset_tr.data
+        original_labels = original_dataset_tr.targets
+        original_azimuths = original_dataset_tr.azimuths
+
+        shuffle = torch.randperm(len(original_images))
+        original_images = original_images[shuffle]
+        original_labels = original_labels[shuffle]
+        original_azimuths = original_azimuths[shuffle]
+
+        self.datasets = []
+
+        for i in range(2):
+            images = original_images[:20000][i::2]
+            labels = original_labels[:20000][i::2]
+            azimuths = original_azimuths[:20000][i::2]
+            self.datasets.append(self.azimuth_dataset(images, labels, azimuths, i))
+        images = original_images[20000:]
+        labels = original_labels[20000:]
+        azimuths = original_azimuths[20000:]
+        self.datasets.append(self.color_dataset(images, labels, azimuths, 2))
+
+        # test environment
+        original_dataset_te = SmallNORB(root, train=False, download=download)
+        original_images = original_dataset_te.data
+        original_labels = original_dataset_te.targets
+        original_azimuths = original_dataset_te.azimuths
+        self.datasets.append(self.azimuth_dataset(original_images, original_labels, original_azimuths, 2))
+
+        self.input_shape = self.INPUT_SHAPE
+        self.num_classes = 5
+        
+    def init_datasets_azimuth_selection(self, root, download):
         original_dataset_tr = SmallNORB(root, train=True, download=download)
 
         original_images = original_dataset_tr.data
