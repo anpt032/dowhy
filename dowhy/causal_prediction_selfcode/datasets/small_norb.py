@@ -451,17 +451,26 @@ class SmallNORBIndAttribute(MultipleDomainDataset):
         labels = self.add_noise(labels, 0.05)
         labels = labels.float()
 
-        print(images.shape)
-        print(labels.shape)
-        print(azimuths.shape)
+        # print(images.shape)
+        # print(labels.shape)
+        # print(azimuths.shape)
 
-        x = torch.stack([images], dim=1)
+        x = torch.stack([images, images, images, images, images], dim=1)
+
+        env_ids = torch.full(azimuths.shape(), env_id, dtype=torch.float32)
+
+        images[torch.tensor(range(len(images))), ((1 + env_ids) % 5).long(), :, :] *= 0
+        images[torch.tensor(range(len(images))), ((2 + env_ids) % 5).long(), :, :] *= 0
+        images[torch.tensor(range(len(images))), ((3 + env_ids) % 5).long(), :, :] *= 0
+        images[torch.tensor(range(len(images))), ((4 + env_ids) % 5).long(), :, :] *= 0
 
         x = x.float().div_(255.0)
         y = labels.view(-1).long()
 
-        a = torch.full((y.shape[0],), env_id, dtype=torch.float32)
-        a = torch.unsqueeze(a, 1)
+        a = torch.unsqueeze(azimuths, 1)
+
+        # a = torch.full((y.shape[0],), env_id, dtype=torch.float32)
+        # a = torch.unsqueeze(a, 1)
 
         return TensorDataset(x, y, a)
 
