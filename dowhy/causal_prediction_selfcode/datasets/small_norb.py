@@ -331,7 +331,7 @@ class SmallNORBIndAttribute(MultipleDomainDataset):
     N_STEPS = 5001
     CHECKPOINT_FREQ = 500
     ENVIRONMENTS = ["1", "2", "3", "3"]  # 1: [0, 5]; 2: [6, 11]; 3: [12, 17]
-    INPUT_SHAPE = (1, 48, 48)
+    INPUT_SHAPE = (3, 48, 48)
 
     def __init__(self, root, download=True):
         """Class for SmallNORBIndAttribute dataset.
@@ -455,14 +455,12 @@ class SmallNORBIndAttribute(MultipleDomainDataset):
         # print(labels.shape)
         # print(azimuths.shape)
 
-        x = torch.stack([images, images, images, images, images], dim=1)
+        x = torch.stack([images, images, images], dim=1)
 
         env_ids = torch.full(azimuths.shape(), env_id, dtype=torch.float32)
 
-        images[torch.tensor(range(len(images))), ((1 + env_ids) % 5).long(), :, :] *= 0
-        images[torch.tensor(range(len(images))), ((2 + env_ids) % 5).long(), :, :] *= 0
-        images[torch.tensor(range(len(images))), ((3 + env_ids) % 5).long(), :, :] *= 0
-        images[torch.tensor(range(len(images))), ((4 + env_ids) % 5).long(), :, :] *= 0
+        images[torch.tensor(range(len(images))), ((1 + env_ids) % 3).long(), :, :] *= 0
+        images[torch.tensor(range(len(images))), ((2 + env_ids) % 3).long(), :, :] *= 0
 
         x = x.float().div_(255.0)
         y = labels.view(-1).long()
