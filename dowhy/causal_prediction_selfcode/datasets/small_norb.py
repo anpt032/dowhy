@@ -455,14 +455,14 @@ class SmallNORBIndAttribute(MultipleDomainDataset):
         # print(labels.shape)
         # print(azimuths.shape)
 
-        x = torch.stack([images, images, images], dim=1)
+        images = torch.stack([images, images, images], dim=1)
 
         env_ids = torch.full(azimuths.shape, env_id, dtype=torch.float32)
 
         images[torch.tensor(range(len(images))), ((1 + env_ids) % 3).long(), :, :] *= 0
         images[torch.tensor(range(len(images))), ((2 + env_ids) % 3).long(), :, :] *= 0
 
-        x = x.float().div_(255.0)
+        x = images.float().div_(255.0)
         y = labels.view(-1).long()
 
         a = torch.unsqueeze(azimuths, 1)
