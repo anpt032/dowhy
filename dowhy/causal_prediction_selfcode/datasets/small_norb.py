@@ -1,5 +1,6 @@
 import os
 import torch
+import torchvision
 import random
 import warnings 
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -8,6 +9,8 @@ from PIL import Image
 import numpy as np
 
 from torch.utils.data import TensorDataset
+from torchvision import transforms
+from torchvision.transforms.functional import rotate
 from torchvision.datasets.vision import VisionDataset
 from torchvision.datasets.utils import check_integrity
 
@@ -330,7 +333,7 @@ class SmallNORBCausalAttribute(MultipleDomainDataset):
 class SmallNORBIndAttribute(MultipleDomainDataset):
     N_STEPS = 5001
     CHECKPOINT_FREQ = 500
-    ENVIRONMENTS = ["1", "2", "3", "3"]  # 1: [0, 5]; 2: [6, 11]; 3: [12, 17]
+    ENVIRONMENTS = ["15", "60", "90", "90"]
     INPUT_SHAPE = (3, 48, 48)
 
     def __init__(self, root, download=True):
@@ -354,31 +357,32 @@ class SmallNORBIndAttribute(MultipleDomainDataset):
 
         original_images = original_dataset_tr.data
         original_labels = original_dataset_tr.targets
-        original_azimuths = original_dataset_tr.azimuths
+        # original_azimuths = original_dataset_tr.azimuths
 
         shuffle = torch.randperm(len(original_images))
         original_images = original_images[shuffle]
         original_labels = original_labels[shuffle]
-        original_azimuths = original_azimuths[shuffle]
+        # original_azimuths = original_azimuths[shuffle]
 
         self.datasets = []
 
-        for i in range(2):
+        angles = ['15', '60', '90']
+        for i, env in enumerate(angles[:-1]):
             images = original_images[:20000][i::2]
             labels = original_labels[:20000][i::2]
-            azimuths = original_azimuths[:20000][i::2]
-            self.datasets.append(self.azimuth_dataset(images, labels, azimuths, i))
+            # azimuths = original_azimuths[:20000][i::2]
+            self.datasets.append(self.azimuth_dataset(images, labels, i, angles[i]))
         images = original_images[20000:]
         labels = original_labels[20000:]
-        azimuths = original_azimuths[20000:]
-        self.datasets.append(self.azimuth_dataset(images, labels, azimuths, 2))
+        # azimuths = original_azimuths[20000:]
+        self.datasets.append(self.azimuth_dataset(images, labels, len(angles) - 1, angles[-1]))
 
         # test environment
         original_dataset_te = SmallNORB(root, train=False, download=download)
         original_images = original_dataset_te.data
         original_labels = original_dataset_te.targets
-        original_azimuths = original_dataset_te.azimuths
-        self.datasets.append(self.azimuth_dataset(original_images, original_labels, original_azimuths, 2))
+        # original_azimuths = original_dataset_te.azimuths
+        self.datasets.append(self.azimuth_dataset(original_images, original_labels, len(angles) - 1, angles[-1]))
 
         self.input_shape = self.INPUT_SHAPE
         self.num_classes = 5
@@ -444,7 +448,19 @@ class SmallNORBIndAttribute(MultipleDomainDataset):
         self.input_shape = self.INPUT_SHAPE
         self.num_classes = 5
 
-    def azimuth_dataset(self, images, labels, azimuths, env_id):
+    def azimuth_dataset(self, images, labels, env_id, angle):
+
+        rotation = transforms.Compose(
+            [
+                transforms.ToPILImage(),
+                transforms.Lambda(
+                    lambda x: rotate(
+                        x, int(angle), fill=(0,), interpolation=torchvision.transforms.InterpolationMode.BILINEAR
+                    )
+                ),
+                transforms.ToTensor(),
+            ]
+        )
 
         images = images.reshape((-1, 96, 96))[:, ::2, ::2]
 
@@ -455,18 +471,11 @@ class SmallNORBIndAttribute(MultipleDomainDataset):
         # print(labels.shape)
         # print(azimuths.shape)
 
-        images = torch.stack([images, images, images], dim=1)
+        x = torch.zeros(len(images), 1, 48, 48)
+        for i in range(len(images)):
+            x[i] = rotation(images[i].float().div_(255.0))
 
-        env_ids = torch.full(azimuths.shape, env_id, dtype=torch.float32)
-
-        images[torch.tensor(range(len(images))), ((1 + env_ids) % 3).long(), :, :] *= 0
-        images[torch.tensor(range(len(images))), ((2 + env_ids) % 3).long(), :, :] *= 0
-
-        x = images.float().div_(255.0)
         y = labels.view(-1).long()
-
-        # a = torch.unsqueeze(azimuths, 1)
-
         a = torch.full((y.shape[0],), env_id, dtype=torch.float32)
         a = torch.unsqueeze(a, 1)
 
