@@ -334,7 +334,7 @@ class SmallNORBIndAttribute(MultipleDomainDataset):
     N_STEPS = 5001
     CHECKPOINT_FREQ = 500
     ENVIRONMENTS = ["15", "60", "90", "90"]
-    INPUT_SHAPE = (3, 48, 48)
+    INPUT_SHAPE = (1, 48, 48)
 
     def __init__(self, root, download=True):
         """Class for SmallNORBIndAttribute dataset.
