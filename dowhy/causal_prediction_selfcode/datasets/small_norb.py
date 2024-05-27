@@ -465,10 +465,10 @@ class SmallNORBIndAttribute(MultipleDomainDataset):
         x = images.float().div_(255.0)
         y = labels.view(-1).long()
 
-        a = torch.unsqueeze(azimuths, 1)
+        # a = torch.unsqueeze(azimuths, 1)
 
-        # a = torch.full((y.shape[0],), env_id, dtype=torch.float32)
-        # a = torch.unsqueeze(a, 1)
+        a = torch.full((y.shape[0],), env_id, dtype=torch.float32)
+        a = torch.unsqueeze(a, 1)
 
         return TensorDataset(x, y, a)
 
