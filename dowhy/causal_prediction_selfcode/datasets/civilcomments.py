@@ -75,4 +75,4 @@ class DWCivilCommentsDataset(CivilCommentsDataset):
                 groupby_fields=[identity_var, 'y'])
             for identity_var in self._identity_vars]
 
-        WILDSDataset.__init__(root_dir, download, split_scheme)
+        WILDSDataset.__init__(self, root_dir, download, split_scheme)
