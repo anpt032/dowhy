@@ -111,3 +111,4 @@ docs/source/example_notebooks/lalonde.csv
 dowhy-docs
 
 dowhy/causal_prediction/datasets/data/
+dowhy/causal_prediction_selfcode/datasets/data/
