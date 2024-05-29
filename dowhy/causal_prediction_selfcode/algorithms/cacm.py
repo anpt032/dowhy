@@ -9,6 +9,7 @@ class CACM(PredictionAlgorithm):
     def __init__(
         self,
         model,
+        sequence_classification=False,
         optimizer="Adam",
         lr=1e-3,
         weight_decay=0.0,
@@ -37,10 +38,9 @@ class CACM(PredictionAlgorithm):
         self.lambda_ind = lambda_ind
         self.lambda_sel = lambda_sel
 
-    def training_step(self, train_batch, batch_idx):
+        self.sequence_classification = sequence_classification
 
-        self.featurizer = self.model[0]
-        self.classifier = self.model[1]
+    def training_step(self, train_batch, batch_idx):
 
         minibatches = train_batch
 
@@ -49,9 +49,22 @@ class CACM(PredictionAlgorithm):
         penalty_causal, penalty_conf, penalty_ind, penalty_sel = 0, 0, 0, 0
         nmb = len(minibatches)
 
-        features = [self.featurizer(xi) for xi, _, _ in minibatches]
-        classifs = [self.classifier(fi) for fi in features]
-        targets = [yi for _, yi, _ in minibatches]
+        if not self.sequence_classification:
+            self.featurizer = self.model[0]
+            self.classifier = self.model[1]
+
+            features = [self.featurizer(xi) for xi, _, _ in minibatches]
+            classifs = [self.classifier(fi) for fi in features]
+            targets = [yi for _, yi, _ in minibatches]
+
+        else:
+            self.classifier = self.model
+
+            features = train_batch[0]
+            targets = train_batch[1]
+
+            classifs = [self.classifier(fi) for fi in features]
+
 
         for i in range(nmb):
             objective += F.cross_entropy(classifs[i], targets[i])

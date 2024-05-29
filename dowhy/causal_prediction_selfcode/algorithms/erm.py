@@ -25,10 +25,10 @@ class ERM(PredictionAlgorithm):
         Override `training_step` from PredictionAlgorithm class for ERM-specific training loop.
 
         """
-        try:
+        if isinstance(train_batch[0], list):
             x = torch.cat([x for x, y, _ in train_batch])
             y = torch.cat([y for x, y, _ in train_batch])
-        except ValueError:
+        else:
             x = train_batch[0]
             y = train_batch[1]
 
