@@ -63,7 +63,7 @@ class CACM(PredictionAlgorithm):
             features = train_batch[0]
             targets = train_batch[1]
 
-            classifs = self.classifier(features)
+            classifs = [self.classifier(features)]
 
 
         for i in range(nmb):
