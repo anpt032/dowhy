@@ -67,6 +67,7 @@ class DWCivilCommentsDataset(CivilCommentsDataset):
             ),
             dim=1
         )
+
         self._metadata_fields = self._identity_vars + self._auxiliary_vars + ['y']
 
         self._eval_groupers = [
