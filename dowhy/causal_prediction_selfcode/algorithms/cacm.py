@@ -80,9 +80,12 @@ class CACM(PredictionAlgorithm):
 
         if self.attr_types != []:
             for attr_type_idx, attr_type in enumerate(self.attr_types):
-                attribute_labels = [
-                    ai for _, _, ai in minibatches
-                ]
+                if not self.sequence_classification:
+                    attribute_labels = [
+                        ai for _, _, ai in minibatches
+                    ]
+                else:
+                    attribute_labels = minibatches[2]
 
                 E_eq_A_attr = attr_type_idx in self.E_eq_A
 
