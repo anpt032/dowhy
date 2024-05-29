@@ -57,19 +57,23 @@ class CACM(PredictionAlgorithm):
             classifs = [self.classifier(fi) for fi in features]
             targets = [yi for _, yi, _ in minibatches]
 
+            for i in range(nmb):
+                objective += F.cross_entropy(classifs[i], targets[i])
+                correct += (torch.argmax(classifs[i], dim=1) == targets[i]).float().sum().item()
+                total += classifs[i].shape[0]
+
+            acc = correct / total
+
         else:
             self.classifier = self.model
 
             features = train_batch[0]
             targets = train_batch[1]
 
-            classifs = [self.classifier(features)]
+            classifs = self.classifier(features)
 
-
-        for i in range(nmb):
-            objective += F.cross_entropy(classifs[i], targets[i])
-            correct += (torch.argmax(classifs[i], dim=1) == targets[i]).float().sum().item()
-            total += classifs[i].shape[0]
+            objective += F.cross_entropy(classifs, targets)
+            acc = (torch.argmax(classifs, dim=1) == targets).float().mean()
 
         objective /= nmb
         loss = objective
@@ -137,7 +141,6 @@ class CACM(PredictionAlgorithm):
         else:
             raise ValueError("No attribute types or graph provided.")
 
-        acc = correct / total
 
         metrics = {"train_acc": acc, "train_loss": loss}
         self.log_dict(metrics, on_step=False, on_epoch=True, prog_bar=True)
