@@ -16,7 +16,7 @@ from torchvision.datasets.utils import check_integrity
 
 import tensorflow_datasets as tfds
 
-from dowhy.causal_prediction.datasets.base_dataset import MultipleDomainDataset
+from dowhy.causal_prediction_selfcode.datasets.base_dataset import MultipleDomainDataset
 
 
 class SmallNORB(VisionDataset):

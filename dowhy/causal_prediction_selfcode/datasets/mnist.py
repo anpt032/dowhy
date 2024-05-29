@@ -8,7 +8,7 @@ from torchvision import transforms
 from torchvision.datasets import MNIST
 from torchvision.transforms.functional import rotate
 
-from dowhy.causal_prediction.datasets.base_dataset import MultipleDomainDataset
+from dowhy.causal_prediction_selfcode.datasets.base_dataset import MultipleDomainDataset
 
 """ MNIST Causal, Independent and Causal+Independent datasets
 

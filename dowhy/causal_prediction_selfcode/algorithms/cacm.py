@@ -1,8 +1,8 @@
 import torch
 from torch.nn import functional as F
 
-from dowhy.causal_prediction.algorithms.base_algorithm import PredictionAlgorithm
-from dowhy.causal_prediction.algorithms.regularization import Regularizer
+from dowhy.causal_prediction_selfcode.algorithms.base_algorithm import PredictionAlgorithm
+from dowhy.causal_prediction_selfcode.algorithms.regularization import Regularizer
 
 
 class CACM(PredictionAlgorithm):
@@ -47,9 +47,11 @@ class CACM(PredictionAlgorithm):
         objective = 0
         correct, total = 0, 0
         penalty_causal, penalty_conf, penalty_ind, penalty_sel = 0, 0, 0, 0
-        nmb = len(minibatches)
+        
 
         if not self.sequence_classification:
+            nmb = len(minibatches)
+
             self.featurizer = self.model[0]
             self.classifier = self.model[1]
 
@@ -65,6 +67,7 @@ class CACM(PredictionAlgorithm):
             acc = correct / total
 
         else:
+            nmb = 1
             self.classifier = self.model
 
             features = train_batch[0]
@@ -74,6 +77,9 @@ class CACM(PredictionAlgorithm):
 
             objective += F.cross_entropy(classifs, targets)
             acc = (torch.argmax(classifs, dim=1) == targets).float().mean()
+            
+            classifs = [classifs]
+            targets = [targets]
 
         objective /= nmb
         loss = objective

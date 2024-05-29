@@ -1,5 +1,5 @@
-from dowhy.causal_prediction.dataloaders import misc
-from dowhy.causal_prediction.dataloaders.fast_data_loader import FastDataLoader, InfiniteDataLoader
+from dowhy.causal_prediction_selfcode.dataloaders import misc
+from dowhy.causal_prediction_selfcode.dataloaders.fast_data_loader import FastDataLoader, InfiniteDataLoader
 
 
 def get_train_loader(dataset, envs, batch_size, class_balanced=False):

@@ -1,7 +1,7 @@
 import torch
 from torch.nn import functional as F
 
-from dowhy.causal_prediction.algorithms.base_algorithm import PredictionAlgorithm
+from dowhy.causal_prediction_selfcode.algorithms.base_algorithm import PredictionAlgorithm
 
 
 class ERM(PredictionAlgorithm):
