@@ -87,6 +87,11 @@ class CACM(PredictionAlgorithm):
                 else:
                     attribute_labels = minibatches[2]
 
+                print(attribute_labels)
+                print(attribute_labels[0])
+                print(len(attribute_labels.shape))
+                print(attribute_labels[0].shape)
+
                 E_eq_A_attr = attr_type_idx in self.E_eq_A
 
                 # Acause regularization
