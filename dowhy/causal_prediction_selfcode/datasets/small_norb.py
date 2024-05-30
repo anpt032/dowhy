@@ -349,45 +349,7 @@ class SmallNORBIndAttribute(MultipleDomainDataset):
 
         if root is None:
             raise ValueError("Data directory is not specified!")
-        
-        # self.init_datasets_azimuth_selection(root, download=download)
-        # return
 
-        original_dataset_tr = SmallNORB(root, train=True, download=download)
-
-        original_images = original_dataset_tr.data
-        original_labels = original_dataset_tr.targets
-        # original_azimuths = original_dataset_tr.azimuths
-
-        shuffle = torch.randperm(len(original_images))
-        original_images = original_images[shuffle]
-        original_labels = original_labels[shuffle]
-        # original_azimuths = original_azimuths[shuffle]
-
-        self.datasets = []
-
-        angles = ['15', '60', '90']
-        for i, env in enumerate(angles[:-1]):
-            images = original_images[:20000][i::2]
-            labels = original_labels[:20000][i::2]
-            # azimuths = original_azimuths[:20000][i::2]
-            self.datasets.append(self.azimuth_dataset(images, labels, i, angles[i]))
-        images = original_images[20000:]
-        labels = original_labels[20000:]
-        # azimuths = original_azimuths[20000:]
-        self.datasets.append(self.azimuth_dataset(images, labels, len(angles) - 1, angles[-1]))
-
-        # test environment
-        original_dataset_te = SmallNORB(root, train=False, download=download)
-        original_images = original_dataset_te.data
-        original_labels = original_dataset_te.targets
-        # original_azimuths = original_dataset_te.azimuths
-        self.datasets.append(self.azimuth_dataset(original_images, original_labels, len(angles) - 1, angles[-1]))
-
-        self.input_shape = self.INPUT_SHAPE
-        self.num_classes = 5
-        
-    def init_datasets_azimuth_selection(self, root, download):
         original_dataset_tr = SmallNORB(root, train=True, download=download)
 
         original_images = original_dataset_tr.data
@@ -401,11 +363,11 @@ class SmallNORBIndAttribute(MultipleDomainDataset):
         self.datasets = []
 
         for i in range(len(original_images)):
-            if original_azimuths[i] == 0:
+            if original_azimuths[i] < 6:
                 domain_1_indices.append(i)
-            elif original_azimuths[i] == 6:
+            elif original_azimuths[i] >= 6 and original_azimuths < 12:
                 domain_2_indices.append(i)
-            elif original_azimuths[i] == 12:
+            elif original_azimuths[i] >= 12:
                 domain_3_indices.append(i)
         
         domain_1_images = torch.index_select(original_images, 0, torch.LongTensor(domain_1_indices))
@@ -420,9 +382,10 @@ class SmallNORBIndAttribute(MultipleDomainDataset):
         domain_2_azimuths = torch.index_select(original_azimuths, 0, torch.LongTensor(domain_2_indices))
         domain_3_azimuths = torch.index_select(original_azimuths, 0, torch.LongTensor(domain_3_indices))
 
-        self.datasets.append(self.azimuth_dataset(domain_1_images, domain_1_labels, domain_1_azimuths, 0))
-        self.datasets.append(self.azimuth_dataset(domain_2_images, domain_2_labels, domain_2_azimuths, 1))
-        self.datasets.append(self.azimuth_dataset(domain_3_images, domain_3_labels, domain_3_azimuths, 2))
+        azimuths = [0, 5, 17]
+        self.datasets.append(self.azimuth_dataset(domain_1_images, domain_1_labels, 0, azimuths[0]))
+        self.datasets.append(self.azimuth_dataset(domain_2_images, domain_2_labels, 1, azimuths[1]))
+        self.datasets.append(self.azimuth_dataset(domain_3_images, domain_3_labels, 2, azimuths[2]))
 
         # Test environment
         original_dataset_te = SmallNORB(root, train=False, download=download)
@@ -434,7 +397,7 @@ class SmallNORBIndAttribute(MultipleDomainDataset):
         domain_4_indices = []
 
         for i in range(len(original_images)):
-            if original_azimuths[i] == 12:
+            if original_azimuths[i] >= 12:
                 domain_4_indices.append(i)
         
         domain_4_images = torch.index_select(original_images, 0, torch.LongTensor(domain_4_indices))
@@ -450,30 +413,13 @@ class SmallNORBIndAttribute(MultipleDomainDataset):
 
     def azimuth_dataset(self, images, labels, env_id, angle):
 
-        rotation = transforms.Compose(
-            [
-                transforms.ToPILImage(),
-                transforms.Lambda(
-                    lambda x: rotate(
-                        x, int(angle), fill=(0,), interpolation=torchvision.transforms.InterpolationMode.BILINEAR
-                    )
-                ),
-                transforms.ToTensor(),
-            ]
-        )
 
         images = images.reshape((-1, 96, 96))[:, ::2, ::2]
 
         labels = self.add_noise(labels, 0.05)
         labels = labels.float()
 
-        # print(images.shape)
-        # print(labels.shape)
-        # print(azimuths.shape)
-
-        x = torch.zeros(len(images), 1, 48, 48)
-        for i in range(len(images)):
-            x[i] = rotation(images[i].float().div_(255.0))
+        x = images.float().div_(255.0)
 
         y = labels.view(-1).long()
         a = torch.full((y.shape[0],), env_id, dtype=torch.float32)
