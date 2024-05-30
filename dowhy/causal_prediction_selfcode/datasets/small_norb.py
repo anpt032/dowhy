@@ -364,11 +364,11 @@ class SmallNORBIndAttribute(MultipleDomainDataset):
 
         angles = ["15", "60", "90"]
         for i, env in enumerate(angles[:-1]):
-            images = original_images[:50000][i::2]
-            labels = original_labels[:50000][i::2]
+            images = original_images[:20000][i::2]
+            labels = original_labels[:20000][i::2]
             self.datasets.append(self.rotate_dataset(images, labels, i, angles[i]))
-        images = original_images[50000:]
-        labels = original_labels[50000:]
+        images = original_images[20000:]
+        labels = original_labels[20000:]
         self.datasets.append(self.rotate_dataset(images, labels, len(angles) - 1, angles[-1]))
 
         # test environment
