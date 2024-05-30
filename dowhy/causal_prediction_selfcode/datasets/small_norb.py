@@ -330,6 +330,8 @@ class SmallNORBCausalAttribute(MultipleDomainDataset):
         return torch.tensor(np.array(_images), dtype=torch.uint8), torch.tensor(np.array(_image2s), dtype=torch.uint8), torch.LongTensor(np.array(_labels)), torch.LongTensor(np.array(_lightings))
 
 
+
+# single-attribute Independent
 class SmallNORBIndAttribute(MultipleDomainDataset):
     N_STEPS = 5001
     CHECKPOINT_FREQ = 500
@@ -337,7 +339,7 @@ class SmallNORBIndAttribute(MultipleDomainDataset):
     INPUT_SHAPE = (1, 48, 48)
 
     def __init__(self, root, download=True):
-        """Class for SmallNORBIndAttribute dataset.
+        """Class for MNISTIndAttribute dataset.
 
         :param root: The directory where data can be found (or should be downloaded to, if it does not exist).
         :param download: Binary flag indicating whether data should be downloaded
@@ -346,14 +348,8 @@ class SmallNORBIndAttribute(MultipleDomainDataset):
         """
 
         super().__init__()
-
         if root is None:
-            raise ValueError("Data directory is not specified!")
-        
-        # self.init_azimuth_selection(root, download)
-        self.init_random_selection(root, download)
-    
-    def init_random_selection(self, root, download):
+            raise ValueError("Data directory not specified!")
 
         original_dataset_tr = SmallNORB(root, train=True, download=download)
 
@@ -366,98 +362,56 @@ class SmallNORBIndAttribute(MultipleDomainDataset):
 
         self.datasets = []
 
-        azimuths = [0, 6, 17]
-        for i, env in enumerate(azimuths[:-1]):
-            images = original_images[:20000][i::2]
-            labels = original_labels[:20000][i::2]
-            self.datasets.append(self.azimuth_dataset(images, labels, i, azimuths[i]))
-        images = original_images[20000:]
-        labels = original_labels[20000:]
-        self.datasets.append(self.azimuth_dataset(images, labels, len(azimuths) - 1, azimuths[-1]))
+        angles = ["15", "60", "90"]
+        for i, env in enumerate(angles[:-1]):
+            images = original_images[:50000][i::2]
+            labels = original_labels[:50000][i::2]
+            self.datasets.append(self.rotate_dataset(images, labels, i, angles[i]))
+        images = original_images[50000:]
+        labels = original_labels[50000:]
+        self.datasets.append(self.rotate_dataset(images, labels, len(angles) - 1, angles[-1]))
 
         # test environment
         original_dataset_te = SmallNORB(root, train=False, download=download)
         original_images = original_dataset_te.data
         original_labels = original_dataset_te.targets
-        self.datasets.append(self.azimuth_dataset(original_images, original_labels, len(azimuths) - 1, azimuths[-1]))
+        self.datasets.append(self.rotate_dataset(original_images, original_labels, len(angles) - 1, angles[-1]))
 
         self.input_shape = self.INPUT_SHAPE
         self.num_classes = 5
 
-    def init_azimuth_selection(self, root, download):
+    def rotate_dataset(self, images, labels, env_id, angle):
+        """
+        Transform MNIST dataset by applying rotation to images.
+        Attribute (rotation angle) is independent of label Y.
 
-        original_dataset_tr = SmallNORB(root, train=True, download=download)
+        :param images: original MNIST images
+        :param labels: original MNIST labels
+        :param angle: Value of rotation angle used for transforming the image
+        :returns: TensorDataset containing transformed images, labels, and attributes (angle)
+        """
+        rotation = transforms.Compose(
+            [
+                transforms.ToPILImage(),
+                transforms.Lambda(
+                    lambda x: rotate(
+                        x, int(angle), fill=(0,), interpolation=torchvision.transforms.InterpolationMode.BILINEAR
+                    )
+                ),
+                transforms.ToTensor(),
+            ]
+        )
 
-        original_images = original_dataset_tr.data
-        original_labels = original_dataset_tr.targets
-        original_azimuths = original_dataset_tr.azimuths
-
-        domain_1_indices = []
-        domain_2_indices = []
-        domain_3_indices = []
-
-        self.datasets = []
-
-        for i in range(len(original_images)):
-            if original_azimuths[i] < 6:
-                domain_1_indices.append(i)
-            elif original_azimuths[i] >= 6 and original_azimuths[i] < 12:
-                domain_2_indices.append(i)
-            elif original_azimuths[i] >= 12:
-                domain_3_indices.append(i)
-        
-        domain_1_images = torch.index_select(original_images, 0, torch.LongTensor(domain_1_indices))
-        domain_2_images = torch.index_select(original_images, 0, torch.LongTensor(domain_2_indices))
-        domain_3_images = torch.index_select(original_images, 0, torch.LongTensor(domain_3_indices))
-
-        domain_1_labels = torch.index_select(original_labels, 0, torch.LongTensor(domain_1_indices))
-        domain_2_labels = torch.index_select(original_labels, 0, torch.LongTensor(domain_2_indices))
-        domain_3_labels = torch.index_select(original_labels, 0, torch.LongTensor(domain_3_indices))
-
-        domain_1_azimuths = torch.index_select(original_azimuths, 0, torch.LongTensor(domain_1_indices))
-        domain_2_azimuths = torch.index_select(original_azimuths, 0, torch.LongTensor(domain_2_indices))
-        domain_3_azimuths = torch.index_select(original_azimuths, 0, torch.LongTensor(domain_3_indices))
-
-        azimuths = [0, 6, 17]
-        self.datasets.append(self.azimuth_dataset(domain_1_images, domain_1_labels, 0, azimuths[0]))
-        self.datasets.append(self.azimuth_dataset(domain_2_images, domain_2_labels, 1, azimuths[1]))
-        self.datasets.append(self.azimuth_dataset(domain_3_images, domain_3_labels, 2, azimuths[2]))
-
-        # Test environment
-        original_dataset_te = SmallNORB(root, train=False, download=download)
-
-        original_images = original_dataset_te.data
-        original_labels = original_dataset_te.targets
-        original_azimuths = original_dataset_te.azimuths
-
-        domain_4_indices = []
-
-        for i in range(len(original_images)):
-            if original_azimuths[i] >= 12:
-                domain_4_indices.append(i)
-        
-        domain_4_images = torch.index_select(original_images, 0, torch.LongTensor(domain_4_indices))
-
-        domain_4_labels = torch.index_select(original_labels, 0, torch.LongTensor(domain_4_indices))
-
-        domain_4_azimuths = torch.index_select(original_azimuths, 0, torch.LongTensor(domain_4_indices))
-
-        self.datasets.append(self.azimuth_dataset(domain_4_images, domain_4_labels, 2, azimuths[2]))
-
-        self.input_shape = self.INPUT_SHAPE
-        self.num_classes = 5
-
-    def azimuth_dataset(self, images, labels, env_id, angle):
-
-
+        # Subsample 2x for computational convenience
         images = images.reshape((-1, 96, 96))[:, ::2, ::2]
-
-        labels = self.add_noise(labels, 0.05)
+        # Assign a binary label based on the digit
         labels = labels.float()
+        # Flip label with probability 0.25
+        labels = self.torch_xor_(labels, self.torch_bernoulli_(0.05, len(labels)))
 
-        stacked_images = torch.stack([images], dim=1)
-
-        x = stacked_images.float().div_(255.0)
+        x = torch.zeros(len(images), 1, 48, 48)
+        for i in range(len(images)):
+            x[i] = rotation(images[i].float().div_(255.0))
 
         y = labels.view(-1).long()
         a = torch.full((y.shape[0],), env_id, dtype=torch.float32)
@@ -465,14 +419,157 @@ class SmallNORBIndAttribute(MultipleDomainDataset):
 
         return TensorDataset(x, y, a)
 
-    def add_noise(self, labels: List, rate: float = 0.05):
+    def torch_bernoulli_(self, p, size):
+        return (torch.rand(size) < p).float()
 
-        n_changes = int(len(labels) * rate)
+    def torch_xor_(self, a, b):
+        return (a - b).abs()
 
-        indices_to_change = random.sample(range(len(labels)), n_changes)
 
-        for index in indices_to_change:
-            labels[index] = random.choice([label for label in range(5) if label != labels[index]])
 
-        return labels
+# class SmallNORBIndAttribute(MultipleDomainDataset):
+#     N_STEPS = 5001
+#     CHECKPOINT_FREQ = 500
+#     ENVIRONMENTS = ["15", "60", "90", "90"]
+#     INPUT_SHAPE = (1, 48, 48)
+
+#     def __init__(self, root, download=True):
+#         """Class for SmallNORBIndAttribute dataset.
+
+#         :param root: The directory where data can be found (or should be downloaded to, if it does not exist).
+#         :param download: Binary flag indicating whether data should be downloaded
+#         :returns: an instance of MultipleDomainDataset class
+
+#         """
+
+#         super().__init__()
+
+#         if root is None:
+#             raise ValueError("Data directory is not specified!")
+        
+#         # self.init_azimuth_selection(root, download)
+#         self.init_random_selection(root, download)
+    
+#     def init_random_selection(self, root, download):
+
+#         original_dataset_tr = SmallNORB(root, train=True, download=download)
+
+#         original_images = original_dataset_tr.data
+#         original_labels = original_dataset_tr.targets
+
+#         shuffle = torch.randperm(len(original_images))
+#         original_images = original_images[shuffle]
+#         original_labels = original_labels[shuffle]
+
+#         self.datasets = []
+
+#         azimuths = [0, 6, 17]
+#         for i, env in enumerate(azimuths[:-1]):
+#             images = original_images[:20000][i::2]
+#             labels = original_labels[:20000][i::2]
+#             self.datasets.append(self.azimuth_dataset(images, labels, i, azimuths[i]))
+#         images = original_images[20000:]
+#         labels = original_labels[20000:]
+#         self.datasets.append(self.azimuth_dataset(images, labels, len(azimuths) - 1, azimuths[-1]))
+
+#         # test environment
+#         original_dataset_te = SmallNORB(root, train=False, download=download)
+#         original_images = original_dataset_te.data
+#         original_labels = original_dataset_te.targets
+#         self.datasets.append(self.azimuth_dataset(original_images, original_labels, len(azimuths) - 1, azimuths[-1]))
+
+#         self.input_shape = self.INPUT_SHAPE
+#         self.num_classes = 5
+
+#     def init_azimuth_selection(self, root, download):
+
+#         original_dataset_tr = SmallNORB(root, train=True, download=download)
+
+#         original_images = original_dataset_tr.data
+#         original_labels = original_dataset_tr.targets
+#         original_azimuths = original_dataset_tr.azimuths
+
+#         domain_1_indices = []
+#         domain_2_indices = []
+#         domain_3_indices = []
+
+#         self.datasets = []
+
+#         for i in range(len(original_images)):
+#             if original_azimuths[i] < 6:
+#                 domain_1_indices.append(i)
+#             elif original_azimuths[i] >= 6 and original_azimuths[i] < 12:
+#                 domain_2_indices.append(i)
+#             elif original_azimuths[i] >= 12:
+#                 domain_3_indices.append(i)
+        
+#         domain_1_images = torch.index_select(original_images, 0, torch.LongTensor(domain_1_indices))
+#         domain_2_images = torch.index_select(original_images, 0, torch.LongTensor(domain_2_indices))
+#         domain_3_images = torch.index_select(original_images, 0, torch.LongTensor(domain_3_indices))
+
+#         domain_1_labels = torch.index_select(original_labels, 0, torch.LongTensor(domain_1_indices))
+#         domain_2_labels = torch.index_select(original_labels, 0, torch.LongTensor(domain_2_indices))
+#         domain_3_labels = torch.index_select(original_labels, 0, torch.LongTensor(domain_3_indices))
+
+#         domain_1_azimuths = torch.index_select(original_azimuths, 0, torch.LongTensor(domain_1_indices))
+#         domain_2_azimuths = torch.index_select(original_azimuths, 0, torch.LongTensor(domain_2_indices))
+#         domain_3_azimuths = torch.index_select(original_azimuths, 0, torch.LongTensor(domain_3_indices))
+
+#         azimuths = [0, 6, 17]
+#         self.datasets.append(self.azimuth_dataset(domain_1_images, domain_1_labels, 0, azimuths[0]))
+#         self.datasets.append(self.azimuth_dataset(domain_2_images, domain_2_labels, 1, azimuths[1]))
+#         self.datasets.append(self.azimuth_dataset(domain_3_images, domain_3_labels, 2, azimuths[2]))
+
+#         # Test environment
+#         original_dataset_te = SmallNORB(root, train=False, download=download)
+
+#         original_images = original_dataset_te.data
+#         original_labels = original_dataset_te.targets
+#         original_azimuths = original_dataset_te.azimuths
+
+#         domain_4_indices = []
+
+#         for i in range(len(original_images)):
+#             if original_azimuths[i] >= 12:
+#                 domain_4_indices.append(i)
+        
+#         domain_4_images = torch.index_select(original_images, 0, torch.LongTensor(domain_4_indices))
+
+#         domain_4_labels = torch.index_select(original_labels, 0, torch.LongTensor(domain_4_indices))
+
+#         domain_4_azimuths = torch.index_select(original_azimuths, 0, torch.LongTensor(domain_4_indices))
+
+#         self.datasets.append(self.azimuth_dataset(domain_4_images, domain_4_labels, 2, azimuths[2]))
+
+#         self.input_shape = self.INPUT_SHAPE
+#         self.num_classes = 5
+
+#     def azimuth_dataset(self, images, labels, env_id, angle):
+
+
+#         images = images.reshape((-1, 96, 96))[:, ::2, ::2]
+
+#         labels = self.add_noise(labels, 0.05)
+#         labels = labels.float()
+
+#         stacked_images = torch.stack([images], dim=1)
+
+#         x = stacked_images.float().div_(255.0)
+
+#         y = labels.view(-1).long()
+#         a = torch.full((y.shape[0],), env_id, dtype=torch.float32)
+#         a = torch.unsqueeze(a, 1)
+
+#         return TensorDataset(x, y, a)
+
+#     def add_noise(self, labels: List, rate: float = 0.05):
+
+#         n_changes = int(len(labels) * rate)
+
+#         indices_to_change = random.sample(range(len(labels)), n_changes)
+
+#         for index in indices_to_change:
+#             labels[index] = random.choice([label for label in range(5) if label != labels[index]])
+
+#         return labels
     
