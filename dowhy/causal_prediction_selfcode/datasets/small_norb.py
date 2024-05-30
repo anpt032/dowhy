@@ -368,11 +368,11 @@ class SmallNORBIndAttribute(MultipleDomainDataset):
 
         azimuths = [0, 6, 17]
         for i, env in enumerate(azimuths[:-1]):
-            images = original_images[:50000][i::2]
-            labels = original_labels[:50000][i::2]
+            images = original_images[:20000][i::2]
+            labels = original_labels[:20000][i::2]
             self.datasets.append(self.azimuth_dataset(images, labels, i, azimuths[i]))
-        images = original_images[50000:]
-        labels = original_labels[50000:]
+        images = original_images[20000:]
+        labels = original_labels[20000:]
         self.datasets.append(self.azimuth_dataset(images, labels, len(azimuths) - 1, azimuths[-1]))
 
         # test environment
@@ -383,7 +383,6 @@ class SmallNORBIndAttribute(MultipleDomainDataset):
 
         self.input_shape = self.INPUT_SHAPE
         self.num_classes = 5
-
 
     def init_azimuth_selection(self, root, download):
 
