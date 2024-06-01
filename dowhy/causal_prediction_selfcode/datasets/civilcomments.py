@@ -62,13 +62,14 @@ class DWCivilCommentsDataset(CivilCommentsDataset):
         self._metadata_array = torch.cat(
             (
                 torch.LongTensor((self._metadata_df.loc[:, self._identity_vars] >= 0.5).values),
-                torch.LongTensor((self._metadata_df.loc[:, self._auxiliary_vars] >= 0.5).values),
-                self._y_array.reshape((-1, 1))
+                # torch.LongTensor((self._metadata_df.loc[:, self._auxiliary_vars] >= 0.5).values),
+                # self._y_array.reshape((-1, 1))
             ),
             dim=1
         )
 
-        self._metadata_fields = self._identity_vars + self._auxiliary_vars + ['y']
+        # self._metadata_fields = self._identity_vars + self._auxiliary_vars + ['y']
+        self._metadata_fields = self._identity_vars
 
         self._eval_groupers = [
             CombinatorialGrouper(
