@@ -35,3 +35,5 @@ def mmd_compute(x, y, kernel_type, gamma):
         cova_diff = (cova_x - cova_y).pow(2).mean()
 
         return mean_diff + cova_diff
+    
+

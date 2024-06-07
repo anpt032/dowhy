@@ -1,7 +1,7 @@
 import torch
 from torch.nn import functional as F
 from dowhy.causal_prediction_selfcode.algorithms.base_algorithm import PredictionAlgorithm
-from dowhy.causal_prediction_selfcode.algorithms.utils import mmn_compute
+from dowhy.causal_prediction_selfcode.algorithms.utils import mmd_compute
 
 class AbstractMMD(PredictionAlgorithm):
     def __init__(self, model, optimizer="Adam", lr=1e-3, weight_decay=0.0, betas=(0.9, 0.999), momentum=0.9, 
@@ -16,7 +16,7 @@ class AbstractMMD(PredictionAlgorithm):
         self.mmd_lambda = mmd_lambda
 
     def mmd(self, x, y):
-        return mmn_compute(x, y, self.kernel_type, self.gamma)
+        return mmd_compute(x, y, self.kernel_type, self.gamma)
 
     def training_step(self, train_batch, batch_idx):
         self.featurizer = self.model[0]
