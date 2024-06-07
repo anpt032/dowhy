@@ -1,5 +1,5 @@
 import torch
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 
 def predict(model, dataset, batch_size=16):
