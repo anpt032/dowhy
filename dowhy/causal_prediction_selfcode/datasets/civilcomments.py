@@ -75,7 +75,7 @@ class DWCivilCommentsDataset(CivilCommentsDataset):
                 self._split_array.append(self._split_array[data_index])
 
         self._y_array = torch.LongTensor(self._y_array)
-        self._identity_array = torch.LongTensor(np.array(self._identity_array))
+        self._identity_array = torch.LongTensor(self._identity_array)
         self._identity_groups = torch.LongTensor(self._identity_groups)
         self._split_array = np.array(list(self._split_array))
 
