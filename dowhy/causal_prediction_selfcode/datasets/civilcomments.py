@@ -57,6 +57,9 @@ class DWCivilCommentsDataset(CivilCommentsDataset):
         original_dataset_len = len(self._text_array)
 
         for data_index in range(original_dataset_len):
+            if self._split_array[data_index] is not 'train':
+                continue
+
             identity_groups = self.identities2groups(self._identity_array[data_index])
 
             if len(identity_groups) == 0:
@@ -72,7 +75,7 @@ class DWCivilCommentsDataset(CivilCommentsDataset):
                 self._split_array.append(self._split_array[data_index])
 
         self._y_array = torch.LongTensor(self._y_array)
-        self._identity_array = torch.LongTensor(self._identity_array)
+        self._identity_array = torch.LongTensor(np.array(self._identity_array))
         self._identity_groups = torch.LongTensor(self._identity_groups)
         self._split_array = np.array(list(self._split_array))
 
