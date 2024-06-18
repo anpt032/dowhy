@@ -57,7 +57,7 @@ class DWCivilCommentsDataset(CivilCommentsDataset):
         original_dataset_len = len(self._text_array)
 
         for data_index in range(original_dataset_len):
-            if self._split_array[data_index] is not 'train':
+            if self._split_array[data_index] not in ['train', 0]:
                 continue
 
             identity_groups = self.identities2groups(self._identity_array[data_index])
