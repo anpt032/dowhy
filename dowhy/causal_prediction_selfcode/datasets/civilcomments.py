@@ -91,10 +91,17 @@ class DWCivilCommentsDataset(CivilCommentsDataset):
         # self._metadata_fields = self._identity_vars + self._auxiliary_vars + ['y']
         self._metadata_fields = self._identity_vars + ['identity_group'] + ['y']
 
+
         self.train_grouper = CombinatorialGrouper(
             dataset=self,
             groupby_fields=['identity_group', 'y']
         )
+
+        self.black_grouper = CombinatorialGrouper(
+            dataset=self,
+            groupby_fields=['black', 'y']
+        )
+        
 
         self._eval_groupers = [
             CombinatorialGrouper(
