@@ -103,8 +103,8 @@ class CACM(PredictionAlgorithm):
                 features.append(mb_features)
                 targets.append(mb_targets)
                 attributes.append(mb_attributes)
-                print('self.classif')
-                print(self.classifier(mb_features))
+                # print('self.classif')
+                # print(self.classifier(mb_features))
                 classifs.append(self.classifier(mb_features))
                 # classifs = torch.cat((classifs, self.classifier(mb_features)), dim=0)
 
@@ -115,7 +115,7 @@ class CACM(PredictionAlgorithm):
 
             acc = correct / total
 
-            print('acc', acc)
+            # print('acc', acc)
 
         objective /= nmb
         loss = objective
