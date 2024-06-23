@@ -12,7 +12,7 @@ class CACM(PredictionAlgorithm):
         self,
         model,
         sequence_classification=False,
-        n_groups_per_batch=1,
+        n_groups_per_batch=None,
         optimizer="Adam",
         lr=1e-3,
         weight_decay=0.0,
@@ -31,6 +31,10 @@ class CACM(PredictionAlgorithm):
     ):
         
         super().__init__(model, optimizer, lr, weight_decay, betas, momentum)
+
+        if sequence_classification:
+            if n_groups_per_batch == None:
+                raise Exception('n_groups_per_batch must be specified if sequence_classification=True')
 
         self.CACMRegularizer = Regularizer(E_conditioned, ci_test, kernel_type, gamma)
 
