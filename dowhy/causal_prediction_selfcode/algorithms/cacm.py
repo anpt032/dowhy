@@ -67,19 +67,17 @@ class CACM(PredictionAlgorithm):
             acc = correct / total
 
         else:
-            nmb = 1
             self.classifier = self.model
 
             features = train_batch[0]
             targets = train_batch[1]
 
+            nmb = len(targets)
+
             classifs = self.classifier(features)
 
             objective += F.cross_entropy(classifs, targets)
             acc = (torch.argmax(classifs, dim=1) == targets).float().mean()
-            
-            classifs = [classifs]
-            targets = [targets]
 
         objective /= nmb
         loss = objective
@@ -91,7 +89,7 @@ class CACM(PredictionAlgorithm):
                         ai for _, _, ai in minibatches
                     ]
                 else:
-                    attribute_labels = [minibatches[2]]
+                    attribute_labels = minibatches[2]
 
                 E_eq_A_attr = attr_type_idx in self.E_eq_A
 
