@@ -157,9 +157,9 @@ class BlackLabelCivilCommentsDataset(MultipleDomainDataset):
                 metadata_array.append(metadata)
                 pbar.update(1)
 
-        input_tensors = torch.stack(x_array).to(device)
-        label_tensors = torch.stack(y_array).to(device)
-        metadata_tensors = torch.stack(metadata_array).to(device)
+        input_tensors = torch.stack(x_array)
+        label_tensors = torch.stack(y_array)
+        metadata_tensors = torch.stack(metadata_array)
 
         group_indices = []
         for black in (0, 1):
