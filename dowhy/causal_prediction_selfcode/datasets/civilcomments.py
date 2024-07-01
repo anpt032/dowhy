@@ -2,13 +2,18 @@ from wilds.datasets.civilcomments_dataset import CivilCommentsDataset
 from wilds.common.grouper import CombinatorialGrouper
 from wilds.datasets.wilds_dataset import WILDSDataset
 
+from dowhy.causal_prediction_selfcode.datasets.base_dataset import MultipleDomainDataset
+
+from torch.utils.data import TensorDataset
+
 import pandas as pd
 import os
 import torch
 import numpy as np
+from tqdm.auto import tqdm
 
 
-class DWCivilCommentsDataset(CivilCommentsDataset):
+class WILDSBasedCivilCommentsDataset(CivilCommentsDataset):
 
     def __init__(self, version=None, root_dir='data', download=True, split_scheme='official'):
         self._version = version
@@ -119,3 +124,59 @@ class DWCivilCommentsDataset(CivilCommentsDataset):
                 groups.append(i)
         
         return groups
+
+
+class BlackLabelCivilCommentsDataset(MultipleDomainDataset):
+    N_STEPS = None
+    CHECKPOINT_FREQ = 500
+    ENVIRONMENTS = ['0, 0', '0, 1', '1, 0', '1, 1']
+    INPUT_SHAPE = (300, 2)
+
+    def __init__(self, dataset):
+        super().__init__()
+
+        self.original_dataset = dataset
+        
+
+        x_array = []
+        y_array = []
+        metadata_array = []
+
+        if torch.cuda.is_available():
+            device = 'cuda'
+        else:
+            device = 'cpu'
+
+        with tqdm(total=len(self.original_dataset)) as pbar:
+            pbar.set_description('Loading dataset')
+            for i in range(len(self.original_dataset)):
+                x, y, metadata = self.original_dataset[i]
+                x_array.append(x)
+                y_array.append(y)
+                metadata_array.append(metadata)
+                pbar.update(1)
+
+        input_tensors = torch.stack(x_array).to(device)
+        label_tensors = torch.stack(y_array).to(device)
+        metadata_tensors = torch.stack(metadata_array).to(device)
+
+        group_indices = []
+        for black in (0, 1):
+            for label in (0, 1):
+                group_indices.append(torch.where(
+                    (label_tensors == label) & 
+                    (metadata_tensors[:, 6] == black)
+                )[0])
+        
+        self.datasets = []
+        for indices in group_indices:
+            inputs = input_tensors[indices]
+            labels = label_tensors[indices]
+            metadatas = metadata_tensors[indices]
+            self.datasets.append(TensorDataset(inputs, labels, metadatas))
+
+
+
+
+
+        
