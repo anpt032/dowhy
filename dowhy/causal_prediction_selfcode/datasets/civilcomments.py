@@ -131,6 +131,7 @@ class BlackLabelCivilCommentsDataset(MultipleDomainDataset):
     CHECKPOINT_FREQ = 500
     ENVIRONMENTS = ['0, 0', '0, 1', '1, 0', '1, 1']
     INPUT_SHAPE = (300, 2)
+    N_WORKERS = 2
 
     def __init__(self, dataset):
         super().__init__()
