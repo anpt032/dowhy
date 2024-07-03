@@ -101,6 +101,7 @@ class CACM(PredictionAlgorithm):
                 nmb = self.n_groups_per_batch
                 batch_size = len(train_batch[1])
                 mb_size = int(batch_size/nmb)
+                self.classifier = self.model
                 
                 if torch.cuda.is_available():
                     device = 'cuda'
