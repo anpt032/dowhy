@@ -148,10 +148,12 @@ class CACM(PredictionAlgorithm):
                         ai for _, _, ai in minibatches
                     ]
                 else:
-                    # attribute_labels = attributes
-                    attribute_labels = [
-                        ai for _, _, ai in minibatches
-                    ]
+                    if self.dowhy_dataloader:
+                        attribute_labels = [
+                            ai for _, _, ai in minibatches
+                        ]
+                    else:
+                        attribute_labels = attributes
 
                 E_eq_A_attr = attr_type_idx in self.E_eq_A
 
