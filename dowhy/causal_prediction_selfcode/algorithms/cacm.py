@@ -13,7 +13,8 @@ class CACM(PredictionAlgorithm):
         model,
         sequence_classification=False,
         n_groups_per_batch=None,
-        uniform_over_groups=True,
+        distinct_groups=True,
+        dowhy_dataloader=False,
         optimizer="Adam",
         lr=1e-3,
         weight_decay=0.0,
@@ -48,7 +49,8 @@ class CACM(PredictionAlgorithm):
 
         self.sequence_classification = sequence_classification
         self.n_groups_per_batch = n_groups_per_batch
-        self.uniform_over_groups = uniform_over_groups
+        self.distinct_groups = distinct_groups
+        self.dowhy_dataloader = dowhy_dataloader
 
     def training_step(self, train_batch, batch_idx):
 
@@ -77,7 +79,7 @@ class CACM(PredictionAlgorithm):
             acc = correct / total
 
         else:
-            if not self.uniform_over_groups:
+            if self.dowhy_dataloader:
 
                 nmb = len(minibatches)
 
