@@ -139,8 +139,8 @@ class CACM(PredictionAlgorithm):
                     correct += (torch.argmax(classifs[i], dim=1) == targets[i]).float().sum().item()
                     total += classifs[i].shape[0]
 
-                print('features\n', features)
-                print('targets\n', targets)
+                # print('features\n', features)
+                # print('targets\n', targets)
                 acc = correct / total
 
             # print('acc', acc)
