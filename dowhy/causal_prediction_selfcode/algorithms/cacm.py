@@ -102,6 +102,10 @@ class CACM(PredictionAlgorithm):
                 batch_size = len(train_batch[1])
                 mb_size = int(batch_size/nmb)
                 self.classifier = self.model
+
+                # print(f'nmb = {nmb}\nbatch_size = {batch_size}\nmb_size = {mb_size}\n')
+                # print(f'train_batch[0]\n{train_batch[0]}')
+                # print(f'train_batch[1]\n{train_batch[1]}')
                 
                 if torch.cuda.is_available():
                     device = 'cuda'
@@ -135,6 +139,8 @@ class CACM(PredictionAlgorithm):
                     correct += (torch.argmax(classifs[i], dim=1) == targets[i]).float().sum().item()
                     total += classifs[i].shape[0]
 
+                print('features\n', features)
+                print('targets\n', targets)
                 acc = correct / total
 
             # print('acc', acc)

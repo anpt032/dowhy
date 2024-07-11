@@ -140,6 +140,7 @@ class GroupSampler:
                 size=self.n_groups_per_batch,
                 replace=(not self.distinct_groups),
                 p=self.group_prob)
+            
             sampled_ids = [
                 np.random.choice(
                     self.group_indices[group],
@@ -149,7 +150,7 @@ class GroupSampler:
                 for group in groups_for_batch]
 
             # Flatten
-            sampled_ids = np.concatenate(sampled_ids)
+            # sampled_ids = np.concatenate(sampled_ids)
             yield sampled_ids
 
     def __len__(self):
