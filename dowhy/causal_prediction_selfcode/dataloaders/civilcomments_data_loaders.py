@@ -150,7 +150,7 @@ class GroupSampler:
                 for group in groups_for_batch]
 
             # Flatten
-            # sampled_ids = np.concatenate(sampled_ids)
+            sampled_ids = np.concatenate(sampled_ids)
             yield sampled_ids
 
     def __len__(self):
