@@ -12,6 +12,7 @@ class CACM(PredictionAlgorithm):
         self,
         model,
         sequence_classification=False,
+        group_loader=False,
         n_groups_per_batch=None,
         distinct_groups=True,
         dowhy_dataloader=False,
@@ -34,7 +35,7 @@ class CACM(PredictionAlgorithm):
         
         super().__init__(model, optimizer, lr, weight_decay, betas, momentum)
 
-        if sequence_classification:
+        if sequence_classification and group_loader:
             if n_groups_per_batch == None:
                 raise Exception('n_groups_per_batch must be specified if sequence_classification=True')
 
@@ -48,6 +49,7 @@ class CACM(PredictionAlgorithm):
         self.lambda_sel = lambda_sel
 
         self.sequence_classification = sequence_classification
+        self.group_loader = group_loader
         self.n_groups_per_batch = n_groups_per_batch
         self.distinct_groups = distinct_groups
         self.dowhy_dataloader = dowhy_dataloader
@@ -97,15 +99,13 @@ class CACM(PredictionAlgorithm):
                 acc = correct / total
             
             else:
-
-                nmb = self.n_groups_per_batch
+                if self.group_loader == False:
+                    nmb = 1
+                else: 
+                    nmb = self.n_groups_per_batch
                 batch_size = len(train_batch[1])
                 mb_size = int(batch_size/nmb)
                 self.classifier = self.model
-
-                # print(f'nmb = {nmb}\nbatch_size = {batch_size}\nmb_size = {mb_size}\n')
-                # print(f'train_batch[0]\n{train_batch[0]}')
-                # print(f'train_batch[1]\n{train_batch[1]}')
                 
                 if torch.cuda.is_available():
                     device = 'cuda'
@@ -116,7 +116,6 @@ class CACM(PredictionAlgorithm):
                 targets = []
                 attributes = []
                 classifs = []
-                # classifs = torch.empty(0, device=device, dtype=train_batch[1].dtype)
 
                 for i in range(0, batch_size, mb_size):
                     mb_features = torch.empty((0, 300, 2), device=device, dtype=torch.long)
@@ -129,21 +128,14 @@ class CACM(PredictionAlgorithm):
                     features.append(mb_features)
                     targets.append(mb_targets)
                     attributes.append(mb_attributes)
-                    # print('self.classif')
-                    # print(self.classifier(mb_features))
                     classifs.append(self.classifier(mb_features))
-                    # classifs = torch.cat((classifs, self.classifier(mb_features)), dim=0)
 
                 for i in range(nmb):
                     objective += F.cross_entropy(classifs[i], targets[i])
                     correct += (torch.argmax(classifs[i], dim=1) == targets[i]).float().sum().item()
                     total += classifs[i].shape[0]
 
-                # print('features\n', features)
-                # print('targets\n', targets)
                 acc = correct / total
-
-            # print('acc', acc)
 
         objective /= nmb
         loss = objective
